@@ -2,7 +2,11 @@
 
 this repo contains some of the tools I wrote when working on the wii u. iosuhax is essentially a set of patches for IOSU which provides extra features which can be useful for developers. I'm releasing this because I haven't really touched it since the beginning of january and don't plan on getting back to it.
 
-this would not have been possible without the support of plutoo, yellows8, naehrwert and derrek.
+iosuhax does not contain any exploits or information about vulns o anything. just a custom firmware kind of thing.
+
+iosuhax current only supports fw 5.5.x i think.
+
+i wrote all the code here but iosuhax would not have been possible without the support of plutoo, yellows8, naehrwert and derrek.
 
 # features
 
