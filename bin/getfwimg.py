@@ -1,7 +1,8 @@
 import os, urllib
 from Crypto.Cipher import AES
 
-#insert keys here, crc32 of the fw.img should be 9f2c91ff in the end
+# insert keys here, your keys were set correctly if the crc32 of the fw.img
+# is d674201b and the crc32 of the fw.img.full.bin is 9f2c91ff in the end
 wiiu_common_key = "you have to insert this yourself"
 starbuck_ancast_key = "you have to insert this yourself"
 starbuck_ancast_iv = "you have to insert this yourself"
