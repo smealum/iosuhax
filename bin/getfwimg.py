@@ -46,7 +46,7 @@ print "decrypt first"
 #decrypt fw img with our decrypted key
 buffer = ""
 f = open("0000136e","rb")
-fout = open("0000136e.app","wb")
+fout = open("fw.img","wb")
 iv = "00090000000000000000000000000000"
 iv = iv.decode("hex")
 cipher = AES.new(dec_key, AES.MODE_CBC, iv)
@@ -62,7 +62,7 @@ os.remove("0000136e")
 
 print "decrypt second"
 #decrypt ancast image with ancast key and iv
-f = open("0000136e.app","rb")
+f = open("fw.img","rb")
 fout = open("fw.img.full.bin","wb")
 fout.write(f.read(0x200))
 cipher = AES.new(starbuck_ancast_key, AES.MODE_CBC, starbuck_ancast_iv)
@@ -74,6 +74,5 @@ while True:
         fout.write(enc)
 f.close()
 fout.close()
-os.remove("0000136e.app")
 
 print "done!"
