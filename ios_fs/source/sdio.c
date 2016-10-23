@@ -13,7 +13,8 @@ typedef struct _sd_command_block_t
     u64 offset;
     void *callback;
     void *callback_arg;
-} sd_command_block_t;
+    int minus_one;
+} __attribute__((packed)) sd_command_block_t;
 
 void sdcard_init(void)
 {
@@ -70,16 +71,15 @@ int sdcard_readwrite(int is_read, void *data, u32 cnt, u32 block_size, u32 offse
     }
 
 	// build rw command paramstruct
-    u32 command_parameter_struct[0x24/4];
-    command_parameter_struct[0x00/4] = cnt;
-    command_parameter_struct[0x04/4] = block_size;
-    command_parameter_struct[0x08/4] = (is_read ? 0x03 : 0x00);     // command type
-    command_parameter_struct[0x0C/4] = (u32)data;
-    command_parameter_struct[0x10/4] = 0x00;                        // offset high
-    command_parameter_struct[0x14/4] = offset_blocks;               // offset low
-    command_parameter_struct[0x18/4] = 0x00;                        // callback
-    command_parameter_struct[0x1C/4] = 0x00;                        // callback arg
-    command_parameter_struct[0x20/4] = (u32)-1;                     // -1
+    sd_command_block_t command;
+    command.cnt = cnt;
+    command.block_size = block_size;
+    command.command_type = (is_read ? 0x03 : 0x00);
+    command.data_ptr = data;
+    command.offset = offset_blocks;
+    command.callback = 0x00;
+    command.callback_arg = 0x00;
+    command.minus_one = (u32)-1;
 
     // setup parameters
     int private_data[2];
@@ -87,7 +87,7 @@ int sdcard_readwrite(int is_read, void *data, u32 cnt, u32 block_size, u32 offse
     private_data[1] = 0;
 
     // call readwrite function
-    int result = FS_SDIO_DOREADWRITECOMMAND(device_id, command_parameter_struct, offset_blocks, sdcard_readwrite_callback, (void*)private_data);
+    int result = FS_SDIO_DOREADWRITECOMMAND(device_id, &command, offset_blocks, sdcard_readwrite_callback, (void*)private_data);
     if(result == 0)
     {
         // wait for callback to give the go-ahead

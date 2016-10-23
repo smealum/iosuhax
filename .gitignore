@@ -4,3 +4,9 @@
 /patched_sections
 /wupserver/build
 /patches/*.syms
+/*.img
+/ios_fs/*.bin
+/ios_fs/*.elf
+/ios_fs/*.syms
+/wupserver/*.elf
+/wupserver/*.bin

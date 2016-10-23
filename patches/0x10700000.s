@@ -150,44 +150,6 @@ createDevThread_hook:
 	.align 0x4
 
 ; ; ; ; ; ; ; ; ; ;
-; USB REDIRECTION ;
-; ; ; ; ; ; ; ; ; ;
-
-usbReadWrite_patch:
-	ldr r1, =USB_BASE_SECTORS ; offset_offset
-	b readWriteCallback_patch
-
-usbRead_patch:
-	mov r0, #1 ; read
-	b usbReadWrite_patch
-
-usbWrite_patch:
-	mov r0, #0 ; write
-	b usbReadWrite_patch
-
-; ; ; ; ; ; ; ; ; ; ;
-; SDIO REDIRECTION  ;
-; ; ; ; ; ; ; ; ; ; ;
-
-sdcardReadWrite_patch:
-	push {r2}
-	ldr r2, [r0, #0x14]
-	mov r0, r1
-	cmp r2, #6 ; DEVICETYPE_SDCARD
-	ldrne r1, =MLC_BASE_SECTORS ; mlc
-	ldreq r1, =0x00000000 ; sdcard
-	pop {r2}
-	b readWriteCallback_patch
-
-sdcardRead_patch:
-	mov r1, #1 ; read
-	b sdcardReadWrite_patch
-
-sdcardWrite_patch:
-	mov r1, #0 ; write
-	b sdcardReadWrite_patch
-
-; ; ; ; ; ; ; ; ; ;
 ; SLC REDIRECTION ;
 ; ; ; ; ; ; ; ; ; ;
 
