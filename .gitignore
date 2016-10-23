@@ -1,0 +1,6 @@
+/ios_fs/build
+/bin
+/sections
+/patched_sections
+/wupserver/build
+/patches/*.syms

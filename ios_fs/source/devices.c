@@ -73,10 +73,10 @@ readWriteCallback_patch:
 typedef void (*read_write_callback_t)(int, int);
 
 //! read1(void *physical_device_info, int offset_high, int offset_low, int cnt, int block_size, void *data_outptr, void *callback, int callback_parameter)
-int readWriteCallback_patch2(int is_read, int offset_offset, int offset_low, int cnt, int block_size, void *data_outptr, read_write_callback_t callback, int callback_parameter)
+int readWriteCallback_patch(int is_read, int offset_offset, int offset_low, int cnt, int block_size, void *data_outptr, read_write_callback_t callback, int callback_parameter)
 {
     int result_arg;
-    int result = sdcard_readwrite(is_read, data_outptr, cnt, block_size, offset_offset, &result_arg, DEVICE_ID_SDCARD_PATCHED);
+    int result = sdcard_readwrite(is_read, data_outptr, cnt, block_size, offset_offset + offset_low, &result_arg, DEVICE_ID_SDCARD_PATCHED);
 
     if(result == 0)
     {

@@ -149,36 +149,6 @@ createDevThread_hook:
 	.byte 0x00
 	.align 0x4
 
-; read1(void *physical_device_info, int offset_high, int offset_low, int cnt, int block_size, void *data_outptr, void *callback, int callback_parameter)
-; readWriteCallback_patch(bool read, int offset_offset, int offset_low, int cnt, int block_size, void *data_outptr, void *callback, int callback_parameter)
-readWriteCallback_patch:
-	readWriteCallback_patch_stackframe_size equ (7*4)
-	push {r0,r1,r2,r3,r4,r5,lr}
-	mov r5, #0xDA
-	str r5, [sp, #0x8] ; device id (sdcard)
-	add r5, sp, #0xC ; out_callback_arg2 dst
-	add r2, r1
-	str r2, [sp] ; offset
-	str r5, [sp, #4] ; out_callback_arg2
-	ldr r1, [sp, #readWriteCallback_patch_stackframe_size+0x4] ; data_ptr
-	mov r2, r3 ; cnt
-	ldr r3, [sp, #readWriteCallback_patch_stackframe_size] ; block_size
-	bl sdcard_readwrite
-	mov r4, r0
-	cmp r0, #0
-	bne readWriteCallback_patch_skip_callback
-
-	ldr r12, [sp, #readWriteCallback_patch_stackframe_size+0x8] ; callback
-	ldr r0, [r5]
-	ldr r1, [sp, #readWriteCallback_patch_stackframe_size+0xC] ; callback_parameter
-	cmp r12, #0
-	blxne r12
-
-	readWriteCallback_patch_skip_callback:
-	mov r0, r4
-	add sp, #4
-	pop {r1,r2,r3,r4,r5,pc}
-
 ; ; ; ; ; ; ; ; ; ;
 ; USB REDIRECTION ;
 ; ; ; ; ; ; ; ; ; ;
