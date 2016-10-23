@@ -25,3 +25,19 @@ int write_data_offset(void *data_ptr, u32 size, u32 offset_blocks)
 
     return sdcard_readwrite(SDIO_WRITE, data_ptr, sectors, 0x200, offset_blocks, NULL, DEVICE_ID_SDCARD_PATCHED);
 }
+
+void slc_dump(int type, char* format, int base_sectors) {
+	FS_SLEEP(1000);
+	signed int index = 0;
+	do {
+		_printf(20, 0, format, index);
+
+		readSlc(sdcard_read_buffer, index, 0x80, type);
+		index += 0x80;
+
+		FS_SLEEP(10);
+
+		write_data_offset(sdcard_read_buffer, 0x40000, base_sectors);
+		base_sectors += 0x200;
+	} while (index < 0x40000);
+}
