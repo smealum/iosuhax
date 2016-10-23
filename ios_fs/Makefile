@@ -11,8 +11,9 @@ CC = arm-none-eabi-gcc
 LINK = arm-none-eabi-ld
 AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
-CFLAGS += -Wall -mbig-endian -std=c99 -march=armv5 -Os -I$(DEVKITPRO)/libnds/include
-LDFLAGS += --script=ccd00.ld -EB -L"$(DEVKITARM)/arm-none-eabi/lib"
+OBJDUMP = arm-none-eabi-objdump
+CFLAGS += -Wall -mbig-endian -std=gnu99 -march=armv5 -Os
+LDFLAGS += --script=link.ld -EB -L"$(DEVKITARM)/arm-none-eabi/lib"
 
 CFILES = $(wildcard source/*.c)
 BINFILES = $(wildcard data/*.bin)
@@ -36,7 +37,7 @@ endef
 
 .PHONY:=all dirs
 
-all: dirs $(PROJECTNAME).bin
+all: dirs $(PROJECTNAME).bin $(PROJECTNAME).syms $(PROJECTNAME).text.bin $(PROJECTNAME).data.bin
 
 dirs:
 	@mkdir -p build
@@ -47,9 +48,19 @@ $(PROJECTNAME).bin: $(PROJECTNAME).elf
 $(PROJECTNAME).elf: $(OFILES)
 	$(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES))
 
+$(PROJECTNAME).syms:
+	$(OBJDUMP) -EB -t -marm $(PROJECTNAME).elf | grep 'g     F .text' | awk '{print $$6 " equ 0x" $$1}' > $@
+	$(OBJDUMP) -EB -t -marm $(PROJECTNAME).elf | grep 'g       .text' | awk '{print $$5 " equ 0x" $$1}' >> $@
+
+$(PROJECTNAME).text.bin:
+	$(OBJCOPY) -j .text -j .rodata -O binary $(PROJECTNAME).elf $@
+	
+$(PROJECTNAME).data.bin:
+	$(OBJCOPY) -j .bss -j .data -O binary $(PROJECTNAME).elf $@
+
 clean:
 	@rm -f build/*.o build/*.d
-	@rm -f $(PROJECTNAME).elf $(PROJECTNAME).bin
+	@rm -f $(PROJECTNAME).elf $(PROJECTNAME).bin $(PROJECTNAME).syms $(PROJECTNAME).text.bin $(PROJECTNAME).data.bin
 	@echo "all cleaned up !"
 
 -include $(DFILES)

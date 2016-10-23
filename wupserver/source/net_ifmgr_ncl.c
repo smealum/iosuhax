@@ -9,7 +9,7 @@ static int ifmgrncl_handle = 0;
 int ifmgrnclInit()
 {
 	if(ifmgrncl_handle) return ifmgrncl_handle;
-	
+
 	int ret = svcOpen("/dev/net/ifmgr/ncl", 0);
 
 	if(ret > 0)
@@ -49,7 +49,7 @@ int	IFMGRNCL_GetInterfaceStatus(u16 interface_id, u16* out_status)
 	u8* iobuf1 = allocIobuf(0x2);
 	u16* inbuf = (u16*)iobuf1;
 	u8* iobuf2 = allocIobuf(0x8);
-	u16* outbuf = (u32*)iobuf2;
+	u16* outbuf = (u16*)iobuf2;
 
 	inbuf[0] = interface_id;
 

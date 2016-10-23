@@ -1,6 +1,7 @@
 import sys
 import struct
 import hashlib
+import binascii
 from Crypto.Cipher import AES
 
 class elf32_ehdr:
@@ -159,8 +160,8 @@ class ancast:
 		self.elf.bss_sections(sections)
 
 	def encrypt(self, file, offset):
-		key = "you gon have to fill this out yourself"
-		iv = "and this too"
+		key = binascii.unhexlify("B5D8AB06ED7F6CFC529F2CE1B4EA32FD")
+		iv = binascii.unhexlify("91C9D008312851EF6B228BF14BAD4322")
 		file.seek(offset)
 		buffer = ""
 		hash = hashlib.sha1()

@@ -10,14 +10,17 @@ all: fw.img
 
 sections/%.bin: $(INPUT)
 	@mkdir -p sections
-	@python2 scripts/anpack.py -in $(INPUT) -e $*,$@
+	@python scripts/anpack.py -in $(INPUT) -e $*,$@
 
 extract: $(INPUT_SECTIONS)
 
 wupserver/wupserver.bin:
 	@cd wupserver && make
+	
+ios_fs/ios_fs.bin:
+	@make -C ios_fs
 
-patched_sections/%.bin: sections/%.bin patches/%.s wupserver/wupserver.bin
+patched_sections/%.bin: sections/%.bin patches/%.s wupserver/wupserver.bin ios_fs/ios_fs.bin
 	@mkdir -p patched_sections
 	@echo patches/$*.s
 	@armips patches/$*.s
@@ -25,8 +28,9 @@ patched_sections/%.bin: sections/%.bin patches/%.s wupserver/wupserver.bin
 patch: $(PATCHED_SECTIONS)
 
 fw.img: $(INPUT) $(PATCHED_SECTIONS)
-	python2 scripts/anpack.py -in $(INPUT) -out fw.img $(foreach s,$(SECTIONS),-r $(s),patched_sections/$(s).bin) $(foreach s,$(BSS_SECTIONS),-b $(s),patched_sections/$(s).bin)
+	python scripts/anpack.py -in $(INPUT) -out fw.img $(foreach s,$(SECTIONS),-r $(s),patched_sections/$(s).bin) $(foreach s,$(BSS_SECTIONS),-b $(s),patched_sections/$(s).bin)
 
 clean:
 	@cd wupserver && make clean
 	@rm -f fw.img
+	@make -C ios_fs clean

@@ -55,6 +55,8 @@ FS_CRYPTO_HMAC equ 0x107F3798
 FS_RAW_READ1 equ 0x10732BC0
 FS_REGISTERMDPHYSICALDEVICE equ 0x10718860
 
+.include "ios_fs/ios_fs.syms"
+
 ; patches start here
 
 .org 0x107F0B68
@@ -112,144 +114,6 @@ FS_REGISTERMDPHYSICALDEVICE equ 0x10718860
 
 ; our own custom codes starts here
 .org CODE_BASE
-sdcard_init:
-	; this should run *after* /dev/mmc thread is created
-	push {lr}
-
-	; first we create our synchronization stuff
-	mov r0, #1
-	mov r1, #1
-	bl FS_SVC_CREATEMUTEX
-	ldr r1, =sdcard_access_mutex
-	str r0, [r1]
-
-	ldr r1, =dumpdata_offset
-	mov r0, #0
-	str r0, [r1]
-
-	; then we sleep until /dev/mmc is done initializing sdcard (TODO : better synchronization here)
-	mov r0, #1000
-	bl FS_SLEEP
-
-	; finally we set some flags to indicate sdcard is ready for use
-	ldr r0, =FS_MMC_SDCARD_STRUCT
-	ldr r1, [r0, #0x24]
-	orr r1, #0x20
-	str r1, [r0, #0x24]
-	ldr r1, [r0, #0x28]
-	bic r1, #0x4
-	str r1, [r0, #0x28]
-
-	pop {pc}
-
-mlc_init:
-	; this should run *after* /dev/mmc thread is created (and after sdcard_init)
-	; this should also only be run when you want to dump mlc; this will cause the physical mlc device to be inaccessible to regular FS code
-	push {lr}
-
-	; finally we set some flags to indicate sdcard is ready for use
-	ldr r0, =FS_MMC_MLC_STRUCT
-	ldr r1, [r0, #0x24]
-	orr r1, #0x20
-	str r1, [r0, #0x24]
-	ldr r1, [r0, #0x28]
-	bic r1, #0x4
-	str r1, [r0, #0x28]
-
-	pop {pc}
-
-; r0 : bool read (0 = read, not 0 = write), r1 : data_ptr, r2 : cnt, r3 : block_size, sparg0 : offset_blocks, sparg1 : out_callback_arg2, sparg2 : device_id
-sdcard_readwrite:
-	sdcard_readwrite_stackframe_size equ (4*4+12*4)
-	push {r4,r5,r6,lr}
-	sub sp, #12*4
-
-	; pointer for command paramstruct
-	add r4, sp, #0xC
-	; pointer for mutex (sp + 0x8 will be callback's arg2)
-	add r5, sp, #0x4
-	; offset_blocks
-	ldr r6, [sp, #sdcard_readwrite_stackframe_size]
-
-	; first of all, grab sdcard mutex
-	push {r0,r1,r2,r3}
-	ldr r0, =sdcard_access_mutex
-	ldr r0, [r0]
-	mov r1, #0
-	bl FS_SVC_ACQUIREMUTEX
-	; also create a mutex for synchronization with end of operation...
-	mov r0, #1
-	mov r1, #1
-	bl FS_SVC_CREATEMUTEX
-	str r0, [r5]
-	; ...and acquire it
-	mov r1, #0
-	bl FS_SVC_ACQUIREMUTEX
-	pop {r0,r1,r2,r3}
-
-	; block_size needs to be equal to sector_size (0x200)
-	sdcard_readwrite_block_size_adjust:
-		cmp r3, #0x200
-		movgt r3, r3, lsr 1 ; block_size >>= 1;
-		movgt r2, r2, lsl 1 ; cnt <<= 1;
-		movgt r6, r6, lsl 1 ; offset_blocks <<= 1;
-		bgt sdcard_readwrite_block_size_adjust
-
-	; build rw command paramstruct 
-	str r2, [r4, #0x00] ; cnt
-	str r3, [r4, #0x04] ; block_size
-	cmp r0, #0
-	movne r0, #0x3 ; read operation
-	str r0, [r4, #0x08] ; command type
-	str r1, [r4, #0x0C] ; data_ptr
-	mov r0, #0
-	str r0, [r4, #0x10] ; offset_high
-	str r6, [r4, #0x14] ; offset_low
-	str r0, [r4, #0x18] ; callback
-	str r0, [r4, #0x1C] ; callback_arg
-	mvn r0, #0
-	str r0, [r4, #0x20] ; -1
-
-	; setup parameters
-	ldr r0, [sp, #sdcard_readwrite_stackframe_size+0x8] ; device_identifier : sdcard (real one is 0x43, but patch makes 0xDA valid)
-	mov r1, r4 ; paramstruct
-	mov r2, r6 ; offset_blocks
-	adr r3, sdcard_readwrite_callback ; callback
-	str r5, [sp] ; callback_arg (mutex ptr)
-
-	; call readwrite function
-	bl FS_SDIO_DOREADWRITECOMMAND
-	mov r4, r0
-	cmp r0, #0
-	bne sdcard_readwrite_skip_wait
-
-	; wait for callback to give the go-ahead
-	ldr r0, [r5]
-	mov r1, #0
-	bl FS_SVC_ACQUIREMUTEX
-	ldr r0, [r5, #0x4]
-	ldr r1, [sp, #sdcard_readwrite_stackframe_size+0x4]
-	cmp r1, #0
-	strne r0, [r1]
-	sdcard_readwrite_skip_wait:
-
-	; finally, release sdcard mutexes
-	ldr r0, [r5]
-	bl FS_SVC_DESTROYMUTEX
-	ldr r0, =sdcard_access_mutex
-	ldr r0, [r0]
-	bl FS_SVC_RELEASEMUTEX
-
-	; return
-	mov r0, r4
-	add sp, #12*4
-	pop {r4,r5,r6,pc}
-
-	; release mutex to let everyone know we're done
-	sdcard_readwrite_callback:
-		str r1, [r0, #4]
-		ldr r0, [r0]
-		b FS_SVC_RELEASEMUTEX
 
 createDevThread_hook:
 	push {r0}
@@ -284,62 +148,6 @@ createDevThread_hook:
 	.ascii "welcome to redNAND %08X"
 	.byte 0x00
 	.align 0x4
-
-getMdDeviceById_hook:
-	mov r4, r0
-	cmp r0, #0xDA ; magic id (sdcard)
-	ldreq r0, =FS_MMC_SDCARD_STRUCT
-	popeq {r4,r5,pc}
-	cmp r0, #0xAB ; magic id (mlc)
-	ldreq r0, =FS_MMC_MLC_STRUCT
-	popeq {r4,r5,pc}
-	bx lr ; return if different
-
-registerMdDevice_hook:
-	push {r4,lr}
-
-	cmp r0, #0
-	beq registerMdDevice_hook_skip
-
-	ldr r3, [r0, #0x8] ; mmc device struct ptr
-	ldr r4, =FS_MMC_SDCARD_STRUCT
-	cmp r3, r4
-	bne registerMdDevice_hook_skip
-
-	; sdcard ! fix stuff up so that registration can happen ok
-
-	push {r0-r3}
-	
-	; first lock that mutex
-	ldr r0, =sdcard_access_mutex
-	ldr r0, [r0]
-	mov r1, #0
-	bl FS_SVC_ACQUIREMUTEX
-	
-	; then, clear the flag we set earlier (that FS_REGISTERMDPHYSICALDEVICE will set back anyway)
-	ldr r0, =FS_MMC_SDCARD_STRUCT
-	ldr r1, [r0, #0x24]
-	bic r1, #0x20
-	str r1, [r0, #0x24]
-
-	pop {r0-r3}
-
-	; register it !
-	bl FS_REGISTERMDPHYSICALDEVICE
-	mov r4, r0
-
-	; finally, release the mutex
-	ldr r0, =sdcard_access_mutex
-	ldr r0, [r0]
-	bl FS_SVC_RELEASEMUTEX
-
-	mov r0, r4
-	pop {r4,pc}
-
-	registerMdDevice_hook_skip:
-	; not sdcard
-	bl FS_REGISTERMDPHYSICALDEVICE
-	pop {r4,pc}
 
 ; read1(void *physical_device_info, int offset_high, int offset_low, int cnt, int block_size, void *data_outptr, void *callback, int callback_parameter)
 ; readWriteCallback_patch(bool read, int offset_offset, int offset_low, int cnt, int block_size, void *data_outptr, void *callback, int callback_parameter)
@@ -594,7 +402,7 @@ syslogOutput_hook:
 getPhysicalDeviceHandle:
 	ldr r1, =0x1091C2EC
 	mov r2, #0x204
-	mla r1, r2, r0, r1
+	mla r1, r2, r0, r1 ; r1 += r2 * r0
 	ldrh r1, [r1, #6]
 	orr r0, r1, r0, lsl 16
 	bx lr
@@ -852,7 +660,14 @@ drawCharacter:
 font_data:
 	.incbin "patches/font.bin"
 
+; attach our C code
+.org 0x107F9200
+	.incbin "ios_fs/ios_fs.text.bin"
+	.align 0x100
+
 .Close
+
+
 
 .create "patched_sections/0x10835000.bin",0x10835000
 
@@ -876,5 +691,10 @@ font_data:
 	.align 0x40
 	sdcard_read_buffer:
 		.fill ((sdcard_read_buffer + 0x100000) - .), 0x00
+
+; attach our C code bss and data
+.org 0x11C3C554
+	.incbin "ios_fs/ios_fs.data.bin"
+	.align 0x04
 
 .Close

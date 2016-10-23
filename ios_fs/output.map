@@ -1,0 +1,99 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAMX             0x107f9200         0x00006e00         xr
+RAMRW            0x11c3c554         0x002c3aac         rw !l
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x107f9200      0x2f4
+ build/crt0.o(.init)
+ .init          0x107f9200        0x0 build/crt0.o
+ *(.text)
+ .text          0x107f9200        0x0 build/crt0.o
+ .text          0x107f9200      0x104 build/devices.o
+                0x107f9200                getMdDeviceById
+                0x107f922c                registerMdDevice_hook
+                0x107f92a0                readWriteCallback_patch2
+ .text          0x107f9304       0x24 build/mlcio.o
+                0x107f9304                mlc_init
+ .text          0x107f9328        0x0 build/main.o
+ .text          0x107f9328      0x1ac build/sdio.o
+                0x107f933c                sdcard_init
+                0x107f9394                sdcard_lock_mutex
+                0x107f93b0                sdcard_unlock_mutex
+                0x107f93c8                sdcard_readwrite
+ .text          0x107f94d4       0x20 build/function_hooks.o
+                0x107f94d4                getMdDeviceById_hook
+ *(.rodata)
+
+.data           0x00000000        0x0
+ .data          0x00000000        0x0 build/crt0.o
+ .data          0x00000000        0x0 build/devices.o
+ .data          0x00000000        0x0 build/mlcio.o
+ .data          0x00000000        0x0 build/main.o
+ .data          0x00000000        0x0 build/sdio.o
+ .data          0x00000000        0x0 build/function_hooks.o
+
+.igot.plt       0x00000000        0x0
+ .igot.plt      0x00000000        0x0 build/devices.o
+
+.glue_7         0x107f94f4        0x0
+ .glue_7        0x107f94f4        0x0 linker stubs
+
+.glue_7t        0x107f94f4        0x0
+ .glue_7t       0x107f94f4        0x0 linker stubs
+
+.vfp11_veneer   0x107f94f4        0x0
+ .vfp11_veneer  0x107f94f4        0x0 linker stubs
+
+.v4_bx          0x107f94f4        0x0
+ .v4_bx         0x107f94f4        0x0 linker stubs
+
+.iplt           0x107f94f4        0x0
+ .iplt          0x107f94f4        0x0 build/devices.o
+
+.rel.dyn        0x107f94f4        0x0
+ .rel.iplt      0x107f94f4        0x0 build/devices.o
+
+.bss            0x11c3c554        0x4
+                0x11c3c554                _bss_start = .
+ *(.bss)
+ .bss           0x11c3c554        0x0 build/crt0.o
+ .bss           0x11c3c554        0x0 build/devices.o
+ .bss           0x11c3c554        0x0 build/mlcio.o
+ .bss           0x11c3c554        0x0 build/main.o
+ .bss           0x11c3c554        0x4 build/sdio.o
+ .bss           0x11c3c558        0x0 build/function_hooks.o
+                0x11c3c558                _bss_end = .
+LOAD build/devices.o
+LOAD build/mlcio.o
+LOAD build/main.o
+LOAD build/sdio.o
+LOAD build/function_hooks.o
+OUTPUT(ios_fs.elf elf32-bigarm)
+
+.ARM.attributes
+                0x00000000       0x25
+ .ARM.attributes
+                0x00000000       0x17 build/crt0.o
+ .ARM.attributes
+                0x00000017       0x29 build/devices.o
+ .ARM.attributes
+                0x00000040       0x29 build/mlcio.o
+ .ARM.attributes
+                0x00000069       0x27 build/main.o
+ .ARM.attributes
+                0x00000090       0x29 build/sdio.o
+ .ARM.attributes
+                0x000000b9       0x19 build/function_hooks.o
+
+.comment        0x00000000       0x22
+ .comment       0x00000000       0x22 build/devices.o
+                                 0x23 (size before relaxing)
+ .comment       0x00000022       0x23 build/mlcio.o
+ .comment       0x00000022       0x23 build/main.o
+ .comment       0x00000022       0x23 build/sdio.o
