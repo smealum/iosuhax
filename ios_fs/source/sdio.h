@@ -1,6 +1,9 @@
 #ifndef _SDIO_H_
 #define _SDIO_H_
 
+#define SDIO_WRITE      0
+#define SDIO_READ       1
+
 void sdcard_init(void);
 void sdcard_lock_mutex(void);
 void sdcard_unlock_mutex(void);

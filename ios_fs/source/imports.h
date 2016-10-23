@@ -7,6 +7,7 @@
 #define FS_SVC_DESTROYMUTEX                 ((int (*)(int))0x107F6BD4)
 
 #define FS_SLEEP                            ((void (*)(int))0x1071D668)
+#define FS_MEMCPY                           ((void* (*)(void*, void*, u32))0x107F4F7C)
 
 #define FS_SDIO_DOREADWRITECOMMAND          ((int (*)(int, void*, u32, void*, void*))0x10718A8C)
 

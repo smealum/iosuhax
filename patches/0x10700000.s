@@ -150,112 +150,36 @@ createDevThread_hook:
 	.align 0x4
 
 ; ; ; ; ; ; ; ; ; ;
-; SLC REDIRECTION ;
-; ; ; ; ; ; ; ; ; ;
-
-slcReadWrite_patch:
-	push {r2}
-	ldr r2, [r0, #4]
-	mov r0, r1
-	cmp r2, #0
-	ldrne r1, =((SLC_BASE_SECTORS * 0x200) / 0x800)
-	ldreq r1, =((SLCCMPT_BASE_SECTORS * 0x200) / 0x800)
-	pop {r2}
-	b readWriteCallback_patch
-
-slcRead1_patch:
-	mov r1, #1 ; read
-	b slcReadWrite_patch
-
-slcWrite1_patch:
-	mov r1, #0 ; write
-	b slcReadWrite_patch
-
-slcRead2_patch:
-	slcRead2_patch_stackframe_size equ (0x10+7*4)
-	push {r0-r5,lr}
-	sub sp, #0x10
-	ldr r4, [sp, #slcRead2_patch_stackframe_size+0x00]
-	str r4, [sp, #0x0] ; block_size
-	ldr r4, [sp, #slcRead2_patch_stackframe_size+0x08]
-	str r4, [sp, #0x4] ; data_outptr
-	ldr r4, [sp, #slcRead2_patch_stackframe_size+0x10]
-	str r4, [sp, #0x8] ; callback
-	ldr r4, [sp, #slcRead2_patch_stackframe_size+0x14]
-	str r4, [sp, #0xC] ; callback_parameter
-	bl slcRead1_patch
-	add sp, #0x14
-	pop {r1-r5,pc}
-
-slcWrite2_patch:
-	slcWrite2_patch_stackframe_size equ (0x10+6*4)
-	push {r0-r4,lr}
-	sub sp, #0x10
-	ldr r4, [sp, #slcWrite2_patch_stackframe_size+0x00]
-	str r4, [sp, #0x0] ; block_size
-	ldr r4, [sp, #slcWrite2_patch_stackframe_size+0x08]
-	str r4, [sp, #0x4] ; data_outptr
-	ldr r4, [sp, #slcWrite2_patch_stackframe_size+0x10]
-	str r4, [sp, #0x8] ; callback
-	ldr r4, [sp, #slcWrite2_patch_stackframe_size+0x14]
-	str r4, [sp, #0xC] ; callback_parameter
-	bl slcWrite1_patch
-	add sp, #0x14
-	pop {r1-r4,pc}
-
-; ; ; ; ; ; ; ; ; ;
 ;   DEBUG STUFF   ;
 ; ; ; ; ; ; ; ; ; ;
-
-mlcRead1_dbg:
-	mlcRead1_dbg_stackframe equ (4*6)
-	mov r12, r0
-	push {r0-r3,r12,lr}
-	adr r0, mlcRead1_dbg_format
-	ldr r1, [sp, #mlcRead1_dbg_stackframe+9*4]
-	bl FS_SYSLOG_OUTPUT
-	pop {r0-r3,lr,pc} ; replaces mov lr, r0
-	mlcRead1_dbg_format:
-		.ascii "mlcRead1 : %08X %08X %08X"
-		.byte 0x0a
-		.byte 0x00
-		.align 0x4
-
-mlcRead1_end_hook:
-	mlcRead1_end_hook_stackframe equ (4*10)
-	push {r0}
-	mov r0, #50
-	bl FS_SLEEP
-	ldr r0, =sdcard_read_buffer
-	ldr r1, [sp, #mlcRead1_end_hook_stackframe+4*1]
-	mov r2, #0x200
-	bl FS_MEMCPY
-	ldr r0, =sdcard_read_buffer
-	str r6, [r0]
-	mov r1, #0x200
-	bl dump_data
-	pop {r0,r4-r11,pc}
-
-; r0 : data ptr
-; r1 : size
-; r2 : offset_blocks
-write_data_offset:
-	push {r1,r2,r3,r4,lr}
-	mov r3, r1, lsr 9 ; size /= 0x200
-	cmp r3, #0
-	moveq r3, #1
-	mov r1, r0 ; data_ptr
-	str r2, [sp] ; offset
-	mov r0, #0
-	str r0, [sp, #0x4] ; out_callback_arg2
-	mov r0, #0xDA
-	str r0, [sp, #0x8] ; device id
-	mov r0, #0 ; write
-	mov r2, r3 ; num_sectors
-	mov r3, #0x200 ; block_size
-	bl sdcard_readwrite
-	add sp, #0xC
-	pop {r4,pc}
+;mlcRead1_dbg:
+;	mlcRead1_dbg_stackframe equ (4*6)
+;	mov r12, r0
+;	push {r0-r3,r12,lr}
+;	adr r0, mlcRead1_dbg_format
+;	ldr r1, [sp, #mlcRead1_dbg_stackframe+9*4]
+;	bl FS_SYSLOG_OUTPUT
+;	pop {r0-r3,lr,pc} ; replaces mov lr, r0
+;	mlcRead1_dbg_format:
+;		.ascii "mlcRead1 : %08X %08X %08X"
+;		.byte 0x0a
+;		.byte 0x00
+;		.align 0x4
+;
+;mlcRead1_end_hook:
+;	mlcRead1_end_hook_stackframe equ (4*10)
+;	push {r0}
+;	mov r0, #50
+;	bl FS_SLEEP
+;	ldr r0, =sdcard_read_buffer
+;	ldr r1, [sp, #mlcRead1_end_hook_stackframe+4*1]
+;	mov r2, #0x200
+;	bl FS_MEMCPY
+;	ldr r0, =sdcard_read_buffer
+;	str r6, [r0]
+;	mov r1, #0x200
+;	bl dump_data
+;	pop {r0,r4-r11,pc}
 
 ; r0 : data ptr
 ; r1 : size
@@ -303,27 +227,6 @@ dump_lots_data:
 		cmp r6, #0
 		bne dump_lots_data_loop
 	pop {r4-r6,pc}
-
-dump_syslog:
-	push {r1,r2,r3,lr}
-	ldr r0, =syslog_buffer
-	ldr r1, =0x05095ECC ; data_ptr (syslog ptr)
-	ldr r1, [r1]
-	mov r2, #0x40000
-	bl FS_MEMCPY
-	ldr r0, =SYSLOG_BASE_SECTORS ; offset_sectors
-	str r0, [sp]
-	mov r0, #0
-	str r0, [sp, #0x4] ; out_callback_arg2
-	mov r0, #0xDA
-	str r0, [sp, #0x8] ; device id
-	mov r0, #0 ; write
-	ldr r1, =syslog_buffer
-	mov r2, #0x200 ; num_sectors (0x40000 bytes)
-	mov r3, #0x200 ; block_size
-	bl sdcard_readwrite
-	add sp, #0xC
-	pop {pc}
 
 syslogOutput_hook:
 	push {r0}
@@ -617,9 +520,6 @@ font_data:
 	_printf_string:
 		.fill ((_printf_string + 0x100) - .), 0x00
 	_printf_string_end:
-	.align 0x40
-	syslog_buffer:
-		.fill ((syslog_buffer + 0x40000) - .), 0x00
 	.align 0x40
 	sdcard_read_buffer:
 		.fill ((sdcard_read_buffer + 0x100000) - .), 0x00
