@@ -124,7 +124,8 @@ createDevThread_hook:
 
 	bl sdcard_init
 
-	bl clear_screen
+    mov r0, 0xFF
+	bl clearScreen
 
 	mov r0, #20
 	mov r1, #20
@@ -233,72 +234,6 @@ syslogOutput_hook:
 	; bl dump_syslog
 	pop {r0,r4-r8,r10,pc}
 
-; r0 : device id
-getPhysicalDeviceHandle:
-	ldr r1, =0x1091C2EC
-	mov r2, #0x204
-	mla r1, r2, r0, r1 ; r1 += r2 * r0
-	ldrh r1, [r1, #6]
-	orr r0, r1, r0, lsl 16
-	bx lr
-
-; r0 : dst, r1 : offset, r2 : sectors, r3 : device id
-; rawRead1PhysicalDevice_(int physical_device_handle, unsigned int offset_high, unsigned int offset_low, unsigned int size, void *outptr, int (__fastcall *callback)(unsigned int, int), int callback_arg)
-readSlc:
-	push {lr}
-	sub sp, #0xC
-	str r0, [sp] ; outptr
-	mov r0, #0
-	str r0, [sp, #4] ; callback
-	str r0, [sp, #8] ; callback_arg
-	push {r1-r3}
-	mov r0, r3
-	bl getPhysicalDeviceHandle
-	pop {r1-r3}
-	mov r3, r2 ; cnt
-	mov r2, r1 ; offset_low
-	mov r1, #0 ; offset_high
-	BL FS_RAW_READ1
-	add sp, #0xC
-	pop {pc}
-
-slc_dump:
-	push {r4-r7,lr}
-	mov r4, #0
-	mov r5, r0
-	mov r6, r1
-	mov r7, r2
-
-	mov r0, #1000
-	bl FS_SLEEP
-
-	slc_dump_loop:
-		mov r3, r4
-		mov r0, #20
-		mov r1, #0
-		mov r2, r6
-		bl _printf
-
-		ldr r0, =sdcard_read_buffer
-		mov r1, r4
-		mov r2, #0x80
-		add r4, r2
-		mov r3, r5
-		bl readSlc
-
-		mov r0, #10
-		bl FS_SLEEP
-
-		ldr r0, =sdcard_read_buffer
-		mov r1, #0x40000
-		mov r2, r7
-		add r7, r7, r1, lsr 9
-		bl write_data_offset
-
-		cmp r4, #0x40000
-		blt slc_dump_loop
-
-	pop {r4-r7,pc}
 
 	retval_format:
 	.ascii "retval = %08X"
@@ -325,65 +260,6 @@ slc_dump:
 	.byte 0x00
 	.align 4
 
-mlc_dump:
-	push {r4,r7,lr}
-	sub sp, #8
-	mov r4, #0
-	ldr r7, =MLC_BASE_SECTORS
-
-	mlc_dump_loop:
-		bl dump_syslog
-		mov r5, #0
-		mlc_dump_loop2:
-			mov r3, r4
-			mov r0, #20
-			mov r1, #0
-			adr r2, mlc_format
-			bl _printf
-
-			ldr r0, =sdcard_read_buffer
-			mov r1, #0x800
-			mov r2, r4
-			add r4, r1
-			bl read_mlc
-			str r0, [sp]
-
-			ldr r0, =sdcard_read_buffer
-			mov r1, #0x100000
-			mov r2, r7
-			add r7, r7, r1, lsr 9
-			bl write_data_offset
-			str r0, [sp, #4]
-
-			add r5, #1
-			cmp r5, #0x40
-			blt mlc_dump_loop2
-
-		ldr r0, =0x3A20000
-		cmp r4, r0
-		blt mlc_dump_loop
-
-	add sp, #8
-	pop {r4,r7,pc}
-
-; r0 : data ptr
-; r1 : num_sectors
-; r2 : offset_sectors
-read_mlc:
-	push {r1,r2,r3,r4,lr}
-	str r2, [sp]
-	mov r2, r1 ; num_sectors
-	mov r1, r0 ; data_ptr
-	ldr r0, =mlc_out_callback_arg2
-	str r0, [sp, #0x4] ; out_callback_arg2
-	mov r0, #0xAB
-	str r0, [sp, #0x8] ; device id
-	mov r0, #1 ; read
-	mov r3, #0x200 ; block_size
-	bl sdcard_readwrite
-	add sp, #0xC
-	pop {r4,pc}
-
 dumper_main:
 	push {lr}
 	bl mlc_init
@@ -406,94 +282,7 @@ dumper_main:
 	; pop {pc}
 
 .pool
-
-clear_screen:
-	push {lr}
-	ldr r0, =FRAMEBUFFER_ADDRESS ; data_ptr
-	ldr r1, =0x00
-	ldr r2, =FRAMEBUFFER_STRIDE*504
-	bl FS_MEMSET
-	pop {pc}
-
-; r0 : x, r1 : y, r2 : format, ...
-; NOT threadsafe so dont even try you idiot
-_printf:
-	ldr r12, =_printf_xylr
-	str r0, [r12]
-	str r1, [r12, #4]
-	str lr, [r12, #8]
-	ldr r0, =_printf_string
-	mov r1, #_printf_string_end-_printf_string
-	bl FS_SNPRINTF
-	ldr r12, =_printf_xylr
-	ldr r1, [r12]
-	ldr r2, [r12, #4]
-	ldr lr, [r12, #8]
-	push {lr}
-	ldr r0, =_printf_string
-	bl drawString
-	pop {pc}
-
-
-; r0 : str, r1 : x, r2 : y
-drawString:
-	push {r4-r6,lr}
-	mov r4, r0
-	mov r5, r1
-	mov r6, r2
-	drawString_loop:
-		ldrb r0, [r4], #1
-		cmp r0, #0x00
-		beq drawString_end
-		mov r1, r5
-		mov r2, r6
-		bl drawCharacter
-		add r5, #CHARACTER_SIZE
-		b drawString_loop
-	drawString_end:
-	pop {r4-r6,pc}
-
-; r0 : char, r1 : x, r2 : y
-drawCharacter:
-	subs r0, #32
-	; bxlt lr
-	push {r4-r7,lr}
-	ldr r4, =FRAMEBUFFER_ADDRESS ; r4 : framebuffer address
-	add r4, r1, lsl 2 ; add x * 4
-	mov r3, #FRAMEBUFFER_STRIDE
-	mla r4, r2, r3, r4
-	adr r5, font_data ; r5 : character data
-	add r5, r0, lsl 3 ; font is 1bpp, 8x8 => 8 bytes represents one character
-	mov r1, #0xFFFFFFFF ; color
-	mov r2, #0x0 ; empty color
-	mov r6, #8 ; i
-	drawCharacter_loop1:
-		mov r3, #CHARACTER_MULT
-		drawCharacter_loop3:
-			mov r7, #8 ; j
-			ldrb r0, [r5]
-			drawCharacter_loop2:
-				tst r0, #1
-				; as many STRs as CHARACTER_MULT (would be nice to do this in preproc...)
-				streq r1, [r4], #4
-				streq r1, [r4], #4
-				strne r2, [r4], #4
-				strne r2, [r4], #4
-				mov r0, r0, lsr #1
-				subs r7, #1
-				bne drawCharacter_loop2
-			add r4, #FRAMEBUFFER_STRIDE-CHARACTER_SIZE*4
-			subs r3, #1
-			bne drawCharacter_loop3
-		add r5, #1
-		subs r6, #1
-		bne drawCharacter_loop1
-	pop {r4-r7,pc}
-
 .pool
-
-font_data:
-	.incbin "patches/font.bin"
 
 ; attach our C code
 .org 0x107F9200
@@ -513,13 +302,6 @@ font_data:
 		.word 0x00000000
 	mlc_out_callback_arg2:
 		.word 0x00000000
-	_printf_xylr:
-		.word 0x00000000
-		.word 0x00000000
-		.word 0x00000000
-	_printf_string:
-		.fill ((_printf_string + 0x100) - .), 0x00
-	_printf_string_end:
 	.align 0x40
 	sdcard_read_buffer:
 		.fill ((sdcard_read_buffer + 0x100000) - .), 0x00

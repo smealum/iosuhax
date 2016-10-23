@@ -4,11 +4,6 @@
 #include "imports.h"
 #include "sdio.h"
 
-#define USB_BASE_SECTORS        (0x2720000)
-#define SLC_BASE_SECTORS        (0x2F20000)
-#define SLCCMPT_BASE_SECTORS    (0x3020000)
-#define MLC_BASE_SECTORS        (0x3200000)
-
 void * getMdDeviceById(int deviceId)
 {
     if(deviceId == DEVICE_ID_SDCARD_PATCHED)
@@ -39,6 +34,16 @@ int registerMdDevice_hook(void * md, int arg2, int arg3)
     }
 
     return FS_REGISTERMDPHYSICALDEVICE(md, arg2, arg3);
+}
+
+int getPhysicalDeviceHandle(int device)
+{
+    u8 *handleBase = (u8*)0x1091C2EC;
+    u32 handleSize = 0x204;
+
+    //! TODO: check if this is actually correct
+    u32 handle = (*(u32*)(handleBase + device * handleSize + 6)) & 0xFFFF0000;
+    return (handle | (device << 16));
 }
 
 typedef void (*read_write_callback_t)(int, int);
@@ -112,7 +117,7 @@ static int slcReadWrite_patch(void *physical_device_info, int is_read, u32 offse
     u32 offset_offset;
     u32 *phys_dev = (u32*)physical_device_info;
 
-    if(phys_dev[1] == 0)
+    if(phys_dev[1] != 0)
     {
         offset_offset = (((u64)SLC_BASE_SECTORS * (u64)0x200) / 0x800);
     }
@@ -143,3 +148,4 @@ int slcWrite2_patch(void *physical_device_info, u32 offset_high, u32 offset_low,
 {
     return slcReadWrite_patch(physical_device_info, SDIO_WRITE, offset_low, cnt, block_size, data_outptr, callback, callback_parameter);
 }
+
