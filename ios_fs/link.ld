@@ -1,23 +1,27 @@
 OUTPUT_ARCH(arm)
 
-MEMORY
-{
-	RAMX (rx) : ORIGIN = (0x10700000 + 0x000F8200 + 0x1000), LENGTH = (0x10800000 - (0x10700000 + 0x000F8200 + 0x1000))
-	RAMRW (rw!i) : ORIGIN = (0x10835000 + 0x1406554), LENGTH = (0x11F00000 - (0x10835000 + 0x1406554))
-}
-
 SECTIONS
 {
+    . = (0x10700000 + 0x000F8200);
 	.text : ALIGN(0x100) {
-		build/crt0.o(.init)
-		*(.text)
-		*(.rodata)
+	    _text_start = .;
+		*(.text*);
+		*(.rodata*);
 	}
 
+    . = (0x10835000 + 0x1406554);
 	.bss : {
 		_bss_start = .;
-		*(.bss);
+		*(.bss*);
+		*(COMMON);
+	}
+	.io_buffer : ALIGN(0x40) {
+		*(.io_buffer*);
 	}
 	_bss_end = .;
+
+	/DISCARD/ : {
+		*(*);
+	}
 }
 

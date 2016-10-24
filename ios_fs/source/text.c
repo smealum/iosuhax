@@ -10,8 +10,8 @@
 #define FRAMEBUFFER_STRIDE (0xE00)
 #define FRAMEBUFFER_STRIDE_WORDS (FRAMEBUFFER_STRIDE >> 2)
 
-#define CHAR_SIZE_X (8*2)
-#define CHAR_SIZE_Y (8*2)
+#define CHAR_SIZE_X (8)
+#define CHAR_SIZE_Y (8)
 
 u32* const framebuffer = (u32*)FRAMEBUFFER_ADDRESS;
 

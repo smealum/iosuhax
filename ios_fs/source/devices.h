@@ -17,7 +17,8 @@
 #define SLCCMPT_BASE_SECTORS                (0x3020000)
 #define MLC_BASE_SECTORS                    (0x3200000)
 #define SYSLOG_BASE_SECTORS                 (0x6D00000)
+#define DUMPDATA_BASE_SECTORS               (SYSLOG_BASE_SECTORS + (0x40000 / SDIO_BYTES_PER_SECTOR))
 
-int getPhysicalDeviceHandle(int device);
+int getPhysicalDeviceHandle(u32 device);
 
 #endif // DEVICES_H_

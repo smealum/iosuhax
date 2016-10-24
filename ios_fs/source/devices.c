@@ -36,14 +36,12 @@ int registerMdDevice_hook(void * md, int arg2, int arg3)
     return FS_REGISTERMDPHYSICALDEVICE(md, arg2, arg3);
 }
 
-int getPhysicalDeviceHandle(int device)
+int getPhysicalDeviceHandle(u32 device)
 {
-    u8 *handleBase = (u8*)0x1091C2EC;
     u32 handleSize = 0x204;
-
-    //! TODO: check if this is actually correct
-    u32 handle = (*(u32*)(handleBase + device * handleSize + 6)) & 0xFFFF0000;
-    return (handle | (device << 16));
+    u8 *handleBase = (u8*)(0x1091C2EC + device * handleSize);
+    u16 adrLow = (*(u16*)&handleBase[6]);
+    return ((device << 16) | adrLow);
 }
 
 typedef void (*read_write_callback_t)(int, int);
