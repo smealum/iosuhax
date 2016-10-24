@@ -274,6 +274,10 @@ class wupclient:
         (ret, _) = self.ioctlv(handle, 0x81, [inbuffer], [])
         return ret
 
+    def MCP_InstallGetProgress(self, handle):
+        (ret, data) = self.ioctl(handle, 0x82, [], 0x24)
+        return (ret, struct.unpack(">IIIIIIIII", data))
+
     def MCP_CopyTitle(self, handle, path, dst_device_id, flush):
         inbuffer = buffer(0x27F)
         copy_string(inbuffer, path, 0x0)
@@ -284,9 +288,17 @@ class wupclient:
         (ret, _) = self.ioctlv(handle, 0x85, [inbuffer, inbuffer2, inbuffer3], [])
         return ret
 
-    def MCP_InstallGetProgress(self, handle):
-        (ret, data) = self.ioctl(handle, 0x82, [], 0x24)
-        return (ret, struct.unpack(">IIIIIIIII", data))
+    def MCP_InstallSetTargetDevice(self, handle, device):
+        inbuffer = buffer(0x4)
+        copy_word(inbuffer, device, 0x0)
+        (ret, _) = self.ioctl(handle, 0x8D, inbuffer, 0)
+        return ret
+
+    def MCP_InstallSetTargetUsb(self, handle, device):
+        inbuffer = buffer(0x4)
+        copy_word(inbuffer, device, 0x0)
+        (ret, _) = self.ioctl(handle, 0xF1, inbuffer, 0)
+        return ret
 
     # syslog (tmp)
     def dump_syslog(self):
@@ -612,12 +624,30 @@ def unmount_odd_tickets():
     ret = w.close(handle)
     print(hex(ret))
 
-def install_title(path):
+def install_title(path, installToUsb = 0):
     mcp_handle = w.open("/dev/mcp", 0)
     print(hex(mcp_handle))
 
     ret, data = w.MCP_InstallGetInfo(mcp_handle, "/vol/storage_sdcard/"+path)
     print("install info : " + hex(ret), [hex(v) for v in data])
+    if ret != 0:
+        ret = w.close(mcp_handle)
+        print(hex(ret))
+        return
+
+    ret = w.MCP_InstallSetTargetDevice(mcp_handle, installToUsb)
+    print("install set target device : " + hex(ret))
+    if ret != 0:
+        ret = w.close(mcp_handle)
+        print(hex(ret))
+        return
+
+    ret = w.MCP_InstallSetTargetUsb(mcp_handle, installToUsb)
+    print("install set target usb : " + hex(ret))
+    if ret != 0:
+        ret = w.close(mcp_handle)
+        print(hex(ret))
+        return
 
     ret = w.MCP_Install(mcp_handle, "/vol/storage_sdcard/"+path)
     print("install : " + hex(ret))
