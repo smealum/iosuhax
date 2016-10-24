@@ -457,7 +457,7 @@ class wupclient:
         if directorypath == None:
             open(local_filename, "wb").write(buffer)
         else:
-            dir_path = os.path.dirname(os.path.realpath(".")).replace('\\','/')
+            dir_path = os.path.dirname(os.path.abspath(sys.argv[0])).replace('\\','/')
             fullpath = dir_path + "/" + directorypath + "/"
             fullpath = fullpath.replace("//","/")
             mkdir_p(fullpath)
