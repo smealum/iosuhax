@@ -87,3 +87,31 @@ void mlc_dump(void)
     }
     while(offset < 0x3A20000); //! TODO: make define MLC32_SECTOR_COUNT
 }
+
+//! dumpdata_offset is in BSS
+#define DUMPDATA_BASE_SECTORS (SYSLOG_BASE_SECTORS + (0x40000 / 0x200))
+void dump_data(const void* data_ptr, u32 size)
+{
+    u32 num_sectors = size / 0x200;
+    if (num_sectors == 0)
+        num_sectors = 1;
+    sdcard_readwrite(0, data_ptr, num_sectors, 0x200, 
+        DUMPDATA_BASE_SECTORS + *dumpdata_offset, 0, 0xDA);
+    *dumpdata_offset += num_sectors;
+}
+
+void dump_lots_data(const void* addr, u32 size)
+{
+    u32 size_remaining = size;
+    const void* cur_addr = addr;
+    do
+    {
+        u32 cur_size = 0x40000;
+        if (cur_size > size_remaining)
+            cur_size = size_remaining;
+        FS_MEMCPY(sdcard_read_buffer, cur_addr, cur_size);
+        dump_data(sdcard_read_buffer, cur_size);
+        cur_addr = (const void*)((u32)cur_addr + cur_size);
+        size_remaining -= cur_size;
+    } while (cur_size != 0);
+}
