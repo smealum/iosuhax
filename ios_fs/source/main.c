@@ -1,6 +1,8 @@
 #include "text.h"
 #include "sdio.h"
 //#include "dumper.h"
+#include "imports.h"
+#include "fat32_format.h"
 
 #define INITIALIZING_FLA        0x07
 #define INITIALIZING_MMC        0x0D
@@ -17,6 +19,16 @@ void createDevThread_entry(int initialization_type)
 
     if(initialization_type == INITIALIZING_FLA)
     {
-        //dumper_main();
+        /*
+        FormatSDCard();
+
+        int i;
+        for(i = 0; i < 5; i++)
+        {
+            FS_SLEEP(1000);
+        }
+        //! this is a cold reboot which always works
+        FS_IOS_SHUTDOWN(1);
+        */
     }
 }

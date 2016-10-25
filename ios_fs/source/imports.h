@@ -1,6 +1,8 @@
 #ifndef IMPORTS_H_
 #define IMPORTS_H_
 
+#define FS_IOS_SHUTDOWN                     ((void (*)(int))0x107F6C94)
+
 #define FS_SVC_CREATEMUTEX                  ((int (*)(int, int))0x107F6BBC)
 #define FS_SVC_ACQUIREMUTEX                 ((int (*)(int, int))0x107F6BC4)
 #define FS_SVC_RELEASEMUTEX                 ((int (*)(int))0x107F6BCC)
