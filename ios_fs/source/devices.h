@@ -19,6 +19,8 @@
 #define SYSLOG_BASE_SECTORS                 (0x6D00000)
 #define DUMPDATA_BASE_SECTORS               (SYSLOG_BASE_SECTORS + (0x40000 / SDIO_BYTES_PER_SECTOR))
 
+#define MLC_32GB_SECTOR_COUNT               0x3A20000
+
 int getPhysicalDeviceHandle(u32 device);
 
 #endif // DEVICES_H_

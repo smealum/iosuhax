@@ -276,7 +276,7 @@ int FormatToFAT32(u32 lba, u32 sec_count)
 	return 0;
 }
 
-int FormatSDCard(void)
+int FormatSDCard(u32 partition_offset)
 {
     _printf(20, 30, "Formatting SD card....");
 
@@ -290,7 +290,7 @@ int FormatSDCard(void)
         return result;
     }
 
-    u32 lba_start = 2048;
+    u32 lba_start = 0x800 + partition_offset;
     u32 sector_count = 0;
 
     if(mbr->signature != MBR_SIGNATURE)
@@ -301,22 +301,29 @@ int FormatSDCard(void)
     else
     {
         int i;
+        int firstPartition = 1;
         for(i = 0; i < 4; i++)
         {
             if((mbr->partitions[i].type != 0x00) && (mbr->partitions[i].block_count != 0))
             {
                 sector_count += le32(mbr->partitions[i].block_count);
+
+                if(firstPartition)
+                {
+                    firstPartition = 0;
+                    sector_count += le32(mbr->partitions[i].lba_start);
+                }
             }
         }
 
         if(sector_count < 0x7000000) // 56 GB
         {
-            //_printf(20, 30, "Sector count too small from MBR %u sectors", sector_count);
-            //return -1;
+            _printf(20, 30, "Sector count too small from MBR %u sectors", sector_count);
+            return -1;
         }
     }
 
-    result = FormatToFAT32(lba_start, sector_count);
+    result = FormatToFAT32(lba_start, sector_count - partition_offset);
     if(result != 0)
         return result;
 
@@ -330,7 +337,7 @@ int FormatSDCard(void)
 	mbr->partitions[0].chs_start[2] = mbr->partitions[0].chs_end[2] = 0xFF;
 	mbr->partitions[0].type = PARTITION_TYPE_FAT32;
 	mbr->partitions[0].lba_start = le32(lba_start);
-	mbr->partitions[0].block_count = le32(sector_count);
+	mbr->partitions[0].block_count = le32((sector_count - partition_offset));
 
 
     result = sdcard_readwrite(SDIO_WRITE, mbr, 1, SDIO_BYTES_PER_SECTOR, 0, NULL, DEVICE_ID_SDCARD_PATCHED);
