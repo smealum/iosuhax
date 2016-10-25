@@ -255,10 +255,25 @@ class wupclient:
         (ret, data) = self.ioctlv(handle, 0x10, [inbuffer], [0x293], [(ptr, size*cnt)], [])
         return (ret)
 
+    def FSA_GetStatFile(self, handle, file_handle):
+        inbuffer = buffer(0x520)
+        copy_word(inbuffer, file_handle, 0x4)
+        (ret, data) = self.ioctl(handle, 0x14, inbuffer, 0x64)
+        return (ret, struct.unpack(">IIIIIIIIIIIIIIIIIIIIIIIII", data))
+
     def FSA_CloseFile(self, handle, file_handle):
         inbuffer = buffer(0x520)
         copy_word(inbuffer, file_handle, 0x4)
         (ret, data) = self.ioctl(handle, 0x15, inbuffer, 0x293)
+        return ret
+
+    def FSA_ChangeMode(self, handle, path, mode):
+        mask = 0x777
+        inbuffer = buffer(0x520)
+        copy_string(inbuffer, path, 0x0004)
+        copy_word(inbuffer, mode, 0x0284)
+        copy_word(inbuffer, mask, 0x0288)
+        (ret, _) = self.ioctl(handle, 0x20, inbuffer, 0x293)
         return ret
 
     # mcp
@@ -327,6 +342,13 @@ class wupclient:
             print("mkdir error (%s, %08X)" % (path, ret))
             return ret
 
+    def chmod(self, filename, flags):
+        fsa_handle = self.get_fsa_handle()
+        if filename[0] != "/":
+            filename = self.cwd + "/" + filename
+        ret = w.FSA_ChangeMode(fsa_handle, filename, flags)
+        print("chmod returned : " + hex(ret))
+        
     def cd(self, path):
         if path[0] != "/" and self.cwd[0] == "/":
             return self.cd(self.cwd + "/" + path)
@@ -508,6 +530,25 @@ class wupclient:
             sys.stdout.write(hex(k) + "\r"); sys.stdout.flush();
             ret = self.FSA_WriteFile(fsa_handle, file_handle, buffer[k:(k+cur_size)])
             k += cur_size
+        ret = self.FSA_CloseFile(fsa_handle, file_handle)
+
+    def stat(self, filename):
+        fsa_handle = self.get_fsa_handle()
+        if filename[0] != "/":
+            filename = self.cwd + "/" + filename
+        ret, file_handle = self.FSA_OpenFile(fsa_handle, filename, "r")
+        if ret != 0x0:
+            print("stat error : could not open " + filename)
+            return
+        (ret, stats) = self.FSA_GetStatFile(fsa_handle, file_handle)
+        if ret != 0x0:
+            print("stat error : " + hex(ret))
+        else:
+            print("flags: " + hex(stats[1]))
+            print("mode: " + hex(stats[2]))
+            print("owner: " + hex(stats[3]))
+            print("group: " + hex(stats[4]))
+            print("size: " + hex(stats[5]))
         ret = self.FSA_CloseFile(fsa_handle, file_handle)
 
     def up(self, local_filename, filename = None):
