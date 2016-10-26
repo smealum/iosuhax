@@ -8,6 +8,6 @@ void dump_lots_data(u8* addr, u32 size);
 
 void slc_dump(int deviceId, const char* format, u32 base_sectors);
 void mlc_dump(u32 base_sector, u32 mlc_end);
-void dumper_main();
+void dump_nand_complete();
 
 #endif // _DUMPER_H_

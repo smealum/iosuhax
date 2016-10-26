@@ -6,8 +6,6 @@
 #include "mlcio.h"
 #include "text.h"
 
-#define SLC_SECTOR_COUNT        0x40000 // * SLC_BYTES_PER_SECTOR to get bytes
-
 // the IO buffer is put behind everything else because there is no access to this region from IOS-FS it seems
 unsigned char io_buffer[0x40000]  __attribute__((aligned(0x40))) __attribute__((section(".io_buffer")));
 
@@ -33,7 +31,7 @@ static inline int readSlc(void *data_ptr, u32 offset, u32 sectors, int deviceId)
     return FS_RAW_READ1(getPhysicalDeviceHandle(deviceId), 0, offset, sectors, data_ptr, 0, 0);
 }
 
-void slc_dump(int deviceId, const char* format, u32 base_sectors)
+void slc_dump(int deviceId, const char* device, u32 base_sectors)
 {
     u32 offset = 0;
     int readResult = 0;
@@ -44,7 +42,7 @@ void slc_dump(int deviceId, const char* format, u32 base_sectors)
 
     do
     {
-        _printf(20, 50, format, offset, readResult, writeResult, retry);
+        _printf(20, 50, "%s     = %08X / 40000, read code %08X, write code %08X, retry %d", device, offset, readResult, writeResult, retry);
 
         //! pre set a defined memory buffer
         FS_MEMSET(io_buffer, 0xff, sizeof(io_buffer));
@@ -88,10 +86,20 @@ void mlc_dump(u32 base_sector, u32 mlc_end)
     int retry = 0;
     int mlc_result = 0;
     int write_result = 0;
+    int print_counter = 0;
 
     do
     {
-        _printf(20, 50, " %08X / %08X, mlc res %08X, sd res %08X, retry %d", offset, mlc_end, mlc_result, write_result, retry);
+        //! print only every 4th time
+        if(print_counter == 0)
+        {
+            print_counter = 4;
+            _printf(20, 50, "mlc     = %08X / %08X, mlc res %08X, sd res %08X, retry %d", offset, mlc_end, mlc_result, write_result, retry);
+        }
+        else
+        {
+            --print_counter;
+        }
 
         mlc_result = read_mlc(io_buffer, (sizeof(io_buffer) / MLC_BYTES_PER_SECTOR), offset);
         //! retry 5 times as there are read failures in several places
@@ -99,6 +107,7 @@ void mlc_dump(u32 base_sector, u32 mlc_end)
         {
             FS_SLEEP(100);
             retry++;
+            print_counter = 0; // print errors directly
         }
         else
         {
@@ -110,20 +119,29 @@ void mlc_dump(u32 base_sector, u32 mlc_end)
             }
             else
             {
+                FS_SLEEP(100);
                 retry++;
+                print_counter = 0; // print errors directly
             }
         }
     }
     while(offset < mlc_end); //! TODO: make define MLC32_SECTOR_COUNT
 }
 
-void dumper_main()
+void dump_nand_complete()
 {
     mlc_init();
 
-    slc_dump(0x0E, "slc     = %08X", SLC_BASE_SECTORS);
-    slc_dump(0x0E, "slc2    = %08X", SLC_BASE_SECTORS);         //! wtf? why is this dumped again
-    slc_dump(0x0F, "slccmpt = %08X", SLCCMPT_BASE_SECTORS);
+    //! rite marker to SD card from which we can auto detect NAND dump
+    //! we can actually use that for settings
+    memset(io_buffer, 0, SDIO_BYTES_PER_SECTOR);
+    u32 * signature = (u32*)io_buffer;
+    signature[0] = NAND_DUMP_SIGNATURE;
+
+    sdcard_readwrite(SDIO_WRITE, io_buffer, 1, SDIO_BYTES_PER_SECTOR, NAND_DUMP_SIGNATURE_SECTOR, NULL, DEVICE_ID_SDCARD_PATCHED);
+
+    slc_dump(0x0E, "slc", SLC_BASE_SECTORS);
+    slc_dump(0x0F, "slccmpt", SLCCMPT_BASE_SECTORS);
     mlc_dump(MLC_BASE_SECTORS, MLC_32GB_SECTOR_COUNT);
 
     FS_IOS_SHUTDOWN(1);
