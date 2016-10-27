@@ -42,6 +42,10 @@ KERNEL_MCP_IOMAPPINGS_STRUCT equ 0x08140DE0
 	mov r3, #2
 	b crash_handler
 
+; replace syscall 0x81 with own syscall
+.org 0x0812CD2C
+    b read32_syscall
+
 .org CODE_BASE
 
 crash_handler:
@@ -53,7 +57,7 @@ crash_handler:
 	ldr r1, =0xFF
 	ldr r2, =896*504*4
 	bl KERNEL_MEMSET
-	
+
 	mov r0, #0
 	mov r1, #0
 	cmp r5, #1
@@ -65,7 +69,7 @@ crash_handler:
 
 	mov r6, #0
 	crash_handler_loop:
-		
+
 		mov r0, #20
 		mul r1, r6, r0
 		add r1, #40
@@ -115,6 +119,12 @@ crash_handler:
 		.ascii "%08X"
 		.byte 0x00
 		.align 0x4
+
+
+; syscall 0x81 replacement
+read32_syscall:
+    ldr r0, [r0]
+    bx lr
 
 ; r0 : x, r1 : y, r2 : format, ...
 ; NOT threadsafe so dont even try you idiot

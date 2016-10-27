@@ -3,6 +3,7 @@
 #include "devices.h"
 #include "imports.h"
 #include "sdio.h"
+#include "text.h"
 
 void * getMdDeviceById(int deviceId)
 {
@@ -43,8 +44,6 @@ int getPhysicalDeviceHandle(u32 device)
     u16 adrLow = (*(u16*)&handleBase[6]);
     return ((device << 16) | adrLow);
 }
-
-typedef void (*read_write_callback_t)(int, int);
 
 //! read1(void *physical_device_info, int offset_high, int offset_low, int cnt, int block_size, void *data_outptr, void *callback, int callback_parameter)
 int readWriteCallback_patch(int is_read, int offset_offset, int offset_low, int cnt, int block_size, void *data_outptr, read_write_callback_t callback, int callback_parameter)
@@ -117,10 +116,12 @@ static int slcReadWrite_patch(void *physical_device_info, int is_read, u32 offse
 
     if(phys_dev[1] != 0)
     {
+        // physical_device_info = 0x11C381CC
         offset_offset = (((u64)SLC_BASE_SECTORS * (u64)0x200) / 0x800);
     }
     else
     {
+        // physical_device_info = 0x11C37668
         offset_offset = (((u64)SLCCMPT_BASE_SECTORS * (u64)0x200) / 0x800);
     }
 

@@ -1,13 +1,13 @@
 #include "text.h"
 #include "sdio.h"
-#include "mlcio.h"
 #include "dumper.h"
 #include "imports.h"
-#include "devices.h"
-#include "fat32_format.h"
 
 #define INITIALIZING_FLA        0x07
 #define INITIALIZING_MMC        0x0D
+
+
+int getPhysicalDeviceHandle(u32 device);
 
 void createDevThread_entry(int initialization_type)
 {
@@ -15,12 +15,19 @@ void createDevThread_entry(int initialization_type)
     {
         sdcard_init();
         clearScreen(0x000000FF);
-        _printf(20, 20, "welcome to redNAND %08X", *(vu32*)(0x050BD000 - 4));
+        _printf(20, 20, "welcome to redNAND!");
     }
 
-    if(initialization_type == INITIALIZING_FLA)
+    //if(initialization_type == INITIALIZING_FLA)
+    //{
+        //dump_nand_complete();
+    //}
+
+    if(initialization_type == 0x01) // unknown but after SLC init no read/write done at this point yet
     {
-        FormatSDCard(MLC_BASE_SECTORS + MLC_32GB_SECTOR_COUNT);
-        dump_nand_complete();
+        if(check_nand_dump() == 0)
+        {
+            dump_nand_complete();
+        }
     }
 }

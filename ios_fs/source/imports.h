@@ -9,7 +9,7 @@
 #define FS_SVC_DESTROYMUTEX                 ((int (*)(int))0x107F6BD4)
 
 #define FS_SLEEP                            ((void (*)(int))0x1071D668)
-#define FS_MEMCPY                           ((void* (*)(void*, void*, u32))0x107F4F7C)
+#define FS_MEMCPY                           ((void* (*)(void*, const void*, u32))0x107F4F7C)
 #define FS_MEMSET                           ((void* (*)(void*, int, u32))0x107F5018)
 #define FS_VSNPRINTF                        ((int (*)(char * s, size_t n, const char * format, va_list arg))0x107F5F68)
 #define FS_SNPRINTF                         ((int (*)(char * s, size_t n, const char * format, ...))0x107F5FB4)
@@ -19,11 +19,15 @@
 
 #define FS_REGISTERMDPHYSICALDEVICE         ((int (*)(void*, int, int))0x10718860)
 
+#define memcpy                              FS_MEMCPY
+#define memset                              FS_MEMSET
+
 #define FS_MMC_SDCARD_STRUCT                ((vu32*)0x1089B9F8)
 #define FS_MMC_MLC_STRUCT                   ((vu32*)0x1089B948)
 
-#define memcpy                              FS_MEMCPY
-#define memset                              FS_MEMSET
+#define FS_MLC_PHYS_DEV_STRUCT              ((void*)0x11C3A14C)
+#define FS_SLC_PHYS_DEV_STRUCT              ((void*)0x11C381CC)
+#define FS_SLCMPT_PHYS_DEV_STRUCT           ((void*)0x11C37668)
 
 #define le16(i)                             ((((u16) ((i) & 0xFF)) << 8) | ((u16) (((i) & 0xFF00) >> 8)))
 #define le32(i)                             ((((u32)le16((i) & 0xFFFF)) << 16) | ((u32)le16(((i) & 0xFFFF0000) >> 16)))

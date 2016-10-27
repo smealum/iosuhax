@@ -24,9 +24,18 @@
 #define MLC_8GB_SECTOR_COUNT                0xE90000
 #define MLC_32GB_SECTOR_COUNT               0x3A3E000  //0x3A20000
 
-#define NAND_DUMP_SIGNATURE_SECTOR          0x800
+#define MLC_NAND_TYPE_32GB                  0
+#define MLC_NAND_TYPE_8GB                   1
+
+#define NAND_DUMP_SIGNATURE_SECTOR          0x01
 #define NAND_DUMP_SIGNATURE                 0x48415858 // HAXX
 
+
+typedef void (*read_write_callback_t)(int, int);
+
 int getPhysicalDeviceHandle(u32 device);
+
+int slcRead1_original(void *physical_device_info, u32 offset_high, u32 offset_low, u32 cnt, u32 block_size, void *data_outptr, read_write_callback_t callback, int callback_parameter);
+int sdcardRead_original(void *physical_device_info, u32 offset_high, u32 offset_low, u32 cnt, u32 block_size, void *data_outptr, read_write_callback_t callback, int callback_parameter);
 
 #endif // DEVICES_H_

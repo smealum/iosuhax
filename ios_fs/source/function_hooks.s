@@ -39,6 +39,22 @@ syslogOutput_hook:
 #   restore original instruction
     pop {r4-r8,r10,pc}
 
+#############################################################################################
+# Original NAND read functions
+#############################################################################################
+    .globl slcRead1_original
+slcRead1_original:
+    push {r4-r8,lr}
+    ldr r4, [pc]
+    bx r4
+    .word 0x107B9990
+
+    .globl sdcardRead_original
+sdcardRead_original:
+    push {r4,lr}
+    ldr r4, [pc]
+    bx r4
+    .word 0x107BDDD4
 
 #############################################################################################
 # DEBUG STUFF

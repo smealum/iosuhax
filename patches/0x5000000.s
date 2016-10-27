@@ -45,13 +45,23 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 .org 0x050284D8
 	.word fw_img_path
 
+; patch install Cert Verification
+.org 0x05052A90
+    .thumb
+    mov r0, #0
+    bx lr
+.org 0x5014CAC
+    .thumb
+    mov r0, #0
+    bx lr
+
 .org CODE_BASE
 	.arm
 	mcpMainThread_hook:
 		mov r11, r0
 		push {r0-r11,lr}
 		sub sp, #8
-		
+
 		mov r0, #0x78
 		str r0, [sp] ; prio
 		mov r0, #1
@@ -80,7 +90,7 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 		sub sp, #8
 
 		bl MCP_SYSLOG_OUTPUT_T
-		
+
 		mov r0, #0
 		bl MCP_FSA_OPEN_T
 

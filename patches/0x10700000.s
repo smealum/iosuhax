@@ -77,21 +77,21 @@ FS_REGISTERMDPHYSICALDEVICE equ 0x10718860
 ; 	.org FS_USB_WRITE
 ; 		b usbWrite_patch
 ; slc redirection
-;	.org FS_SLC_READ1
-;		b slcRead1_patch
-;	.org FS_SLC_READ2
-;		b slcRead2_patch
-;	.org FS_SLC_WRITE1
-;		b slcWrite1_patch
-;	.org FS_SLC_WRITE2
-;		b slcWrite2_patch
+	.org FS_SLC_READ1
+		b slcRead1_patch
+	.org FS_SLC_READ2
+		b slcRead2_patch
+	.org FS_SLC_WRITE1
+		b slcWrite1_patch
+	.org FS_SLC_WRITE2
+		b slcWrite2_patch
 	.org 0x107206F0
 		mov r0, #0 ; nop out hmac memcmp
 ; mlc redirection
-;	.org FS_SDCARD_READ1
-;		b sdcardRead_patch
-;	.org FS_SDCARD_WRITE1
-;		b sdcardWrite_patch
+	.org FS_SDCARD_READ1
+		b sdcardRead_patch
+	.org FS_SDCARD_WRITE1
+		b sdcardWrite_patch
 ; FS_GETMDDEVICEBYID
 	.org FS_GETMDDEVICEBYID + 0x8
 		bl getMdDeviceById_hook

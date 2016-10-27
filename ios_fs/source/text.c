@@ -24,6 +24,18 @@ void clearScreen(u32 color)
 	}
 }
 
+void clearLine(int y, u32 color)
+{
+	u32* fb = &framebuffer[y * FRAMEBUFFER_STRIDE_WORDS];
+	u32* fb_end = &framebuffer[(y+CHAR_SIZE_Y) * FRAMEBUFFER_STRIDE_WORDS];
+
+    while(fb < fb_end)
+    {
+        *fb = color;
+        fb++;
+    }
+}
+
 void drawCharacter(char c, int x, int y)
 {
 	if(c < 32)return;
@@ -69,9 +81,9 @@ void _printf(int x, int y, const char *format, ...)
     va_list args;
     va_start(args, format);
 
-    static char buffer[0x100];
+    char buffer[0x100];
 
-    FS_VSNPRINTF(buffer, 0xFF, format, args);
+    FS_VSNPRINTF(buffer, sizeof(buffer), format, args);
     drawString(buffer, x, y);
 
     va_end(args);
