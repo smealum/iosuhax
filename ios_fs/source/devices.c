@@ -117,12 +117,12 @@ static int slcReadWrite_patch(void *physical_device_info, int is_read, u32 offse
     if(phys_dev[1] != 0)
     {
         // physical_device_info = 0x11C381CC
-        offset_offset = (((u64)SLC_BASE_SECTORS * (u64)0x200) / 0x800);
+        offset_offset = (u32)(((u64)SLC_BASE_SECTORS * (u64)SDIO_BYTES_PER_SECTOR) / SLC_BYTES_PER_SECTOR);
     }
     else
     {
         // physical_device_info = 0x11C37668
-        offset_offset = (((u64)SLCCMPT_BASE_SECTORS * (u64)0x200) / 0x800);
+        offset_offset = (u32)(((u64)SLCCMPT_BASE_SECTORS * (u64)SDIO_BYTES_PER_SECTOR) / SLC_BYTES_PER_SECTOR);
     }
 
     return readWriteCallback_patch(is_read, offset_offset, offset_low, cnt, block_size, data_outptr, callback, callback_parameter);

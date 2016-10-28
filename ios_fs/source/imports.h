@@ -27,7 +27,7 @@
 
 #define FS_MLC_PHYS_DEV_STRUCT              ((void*)0x11C3A14C)
 #define FS_SLC_PHYS_DEV_STRUCT              ((void*)0x11C381CC)
-#define FS_SLCMPT_PHYS_DEV_STRUCT           ((void*)0x11C37668)
+#define FS_SLCCMPT_PHYS_DEV_STRUCT          ((void*)0x11C37668)
 
 #define le16(i)                             ((((u16) ((i) & 0xFF)) << 8) | ((u16) (((i) & 0xFF00) >> 8)))
 #define le32(i)                             ((((u32)le16((i) & 0xFFFF)) << 16) | ((u32)le16(((i) & 0xFFFF0000) >> 16)))

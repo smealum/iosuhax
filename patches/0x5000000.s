@@ -37,6 +37,17 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 	mov r0, #0
 	bx lr
 
+; patch cert verification
+.org 0x05052A90
+	.arm
+	mov r0, #0
+	bx lr
+
+.org 0x05014CAC
+	.thumb
+	mov r0, #0
+	bx lr
+
 .org 0x050282AE
 	.thumb
 	bl launch_os_hook
@@ -44,16 +55,6 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 ; patch pointer to fw.img loader path
 .org 0x050284D8
 	.word fw_img_path
-
-; patch install Cert Verification
-.org 0x05052A90
-    .thumb
-    mov r0, #0
-    bx lr
-.org 0x5014CAC
-    .thumb
-    mov r0, #0
-    bx lr
 
 .org CODE_BASE
 	.arm

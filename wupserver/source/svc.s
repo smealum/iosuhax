@@ -56,8 +56,3 @@ svcFlushDCache:
 	.word 0xE7F052F0
 	bx lr
 
-.global svcBackdoor
-.type svcBackdoor, %function
-svcBackdoor:
-	.word 0xE7F081F0
-	bx lr

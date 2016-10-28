@@ -19,6 +19,5 @@ int svcIoctl(int fd, u32 request, void* input_buffer, u32 input_buffer_len, void
 int svcIoctlv(int fd, u32 request, u32 vector_count_in, u32 vector_count_out, iovec_s* vector);
 int svcInvalidateDCache(void* address, u32 size);
 int svcFlushDCache(void* address, u32 size);
-int svcBackdoor(u32, u32, u32, void* func);
 
 #endif
