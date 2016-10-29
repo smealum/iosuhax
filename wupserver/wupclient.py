@@ -335,6 +335,8 @@ class wupclient:
 
     def mkdir(self, path, flags):
         fsa_handle = self.get_fsa_handle()
+        if path[0] != "/":
+            path = self.cwd + "/" + path
         ret = w.FSA_MakeDir(fsa_handle, path, flags)
         if ret == 0:
             return 0
@@ -364,6 +366,8 @@ class wupclient:
 
     def ls(self, path = None, return_data = False):
         fsa_handle = self.get_fsa_handle()
+        if path != None and path[0] != "/":
+            path = self.cwd + "/" + path
         ret, dir_handle = self.FSA_OpenDir(fsa_handle, path if path != None else self.cwd)
         if ret != 0x0:
             print("opendir error : " + hex(ret))
