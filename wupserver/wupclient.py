@@ -388,6 +388,8 @@ class wupclient:
         return entries if return_data else None
 
     def dldir(self, path):
+        if path[0] != "/":
+            path = self.cwd + "/" + path
         entries = self.ls(path, True)
         for e in entries:
             if e["is_file"]:
