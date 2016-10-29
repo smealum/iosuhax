@@ -273,10 +273,10 @@ int FormatToFAT32(u32 lba, u32 sec_count)
 }
 
 
-int CheckFAT32Partition(u8 * mbr_buf, u32 partition_offset)
+int CheckFAT32PartitionOffset(u8 * mbr_buf, u32 partition_offset)
 {
     MASTER_BOOT_RECORD *mbr = (MASTER_BOOT_RECORD*)mbr_buf;
-	return (mbr->signature == MBR_SIGNATURE) && (le32(mbr->partitions[0].lba_start) == partition_offset);
+	return (mbr->signature == MBR_SIGNATURE) && (le32(mbr->partitions[0].lba_start) >= partition_offset);
 }
 
 int FormatSDCard(u32 partition_offset, u32 total_sectors)

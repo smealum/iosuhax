@@ -185,7 +185,7 @@ int check_nand_dump(void)
     u32 mlc_sector_count = FS_MMC_MLC_STRUCT[0x30/4];
 
     int signature_correct = 0;
-    sdio_nand_signature_sector_t * sign_sect = (u32*)io_buffer;
+    sdio_nand_signature_sector_t * sign_sect = (sdio_nand_signature_sector_t*)io_buffer;
     memset(sign_sect, 0, SDIO_BYTES_PER_SECTOR);
     sdcard_readwrite(SDIO_READ, sign_sect, 1, SDIO_BYTES_PER_SECTOR, NAND_DUMP_SIGNATURE_SECTOR, NULL, DEVICE_ID_SDCARD_PATCHED);
 
@@ -194,12 +194,12 @@ int check_nand_dump(void)
     memset(io_buffer, 0, SDIO_BYTES_PER_SECTOR);
     sdcard_readwrite(SDIO_READ, io_buffer, 1, SDIO_BYTES_PER_SECTOR, 0, NULL, DEVICE_ID_SDCARD_PATCHED);
 
-    return signature_correct && CheckFAT32Partition(io_buffer, MLC_BASE_SECTORS + mlc_sector_count);
+    return signature_correct && CheckFAT32PartitionOffset(io_buffer, MLC_BASE_SECTORS + mlc_sector_count);
 }
 
 static void wait_format_confirmation(void)
 {
-    int timeout = 200;
+    int timeout = 600;
     //"Press the POWER button SD then , else the console will reboot in %u seconds."
     while(1)
     {
@@ -258,15 +258,18 @@ void dump_nand_complete()
 
     //! write marker to SD card from which we can auto detect NAND dump
     //! we can actually use that for settings
-    sdio_nand_signature_sector_t * sign_sect = (u32*)io_buffer;
+    sdio_nand_signature_sector_t * sign_sect = (sdio_nand_signature_sector_t*)io_buffer;
     memset(sign_sect, 0, SDIO_BYTES_PER_SECTOR);
     sign_sect->signature = NAND_DUMP_SIGNATURE;
-    sign_sect->slc_base_sector = SLC_BASE_SECTORS;
-    sign_sect->slc_sector_count = SLC_SECTOR_COUNT * (SLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
-    sign_sect->slccmpt_base_sector = SLCCMPT_BASE_SECTORS;
-    sign_sect->slccmpt_sector_count = SLC_SECTOR_COUNT * (SLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
-    sign_sect->mlc_base_sector = MLC_BASE_SECTORS;
-    sign_sect->mlc_sector_count = mlc_sector_count * (MLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
+    sign_sect->nand_descriptions[0].nand_type = NAND_DESC_TYPE_SLC;
+    sign_sect->nand_descriptions[0].base_sector = SLC_BASE_SECTORS;
+    sign_sect->nand_descriptions[0].sector_count = SLC_SECTOR_COUNT * (SLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
+    sign_sect->nand_descriptions[1].nand_type = NAND_DESC_TYPE_SLCCMPT;
+    sign_sect->nand_descriptions[1].base_sector = SLCCMPT_BASE_SECTORS;
+    sign_sect->nand_descriptions[1].sector_count = SLC_SECTOR_COUNT * (SLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
+    sign_sect->nand_descriptions[2].nand_type = NAND_DESC_TYPE_MLC;
+    sign_sect->nand_descriptions[2].base_sector = MLC_BASE_SECTORS;
+    sign_sect->nand_descriptions[2].sector_count = mlc_sector_count * (MLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
 
     sdcard_readwrite(SDIO_WRITE, io_buffer, 1, SDIO_BYTES_PER_SECTOR, NAND_DUMP_SIGNATURE_SECTOR, NULL, DEVICE_ID_SDCARD_PATCHED);
 
