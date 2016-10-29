@@ -185,11 +185,11 @@ int check_nand_dump(void)
     u32 mlc_sector_count = FS_MMC_MLC_STRUCT[0x30/4];
 
     int signature_correct = 0;
-    u32 * signature = (u32*)io_buffer;
-    memset(signature, 0, SDIO_BYTES_PER_SECTOR);
-    sdcard_readwrite(SDIO_READ, signature, 1, SDIO_BYTES_PER_SECTOR, NAND_DUMP_SIGNATURE_SECTOR, NULL, DEVICE_ID_SDCARD_PATCHED);
+    sdio_nand_signature_sector_t * sign_sect = (u32*)io_buffer;
+    memset(sign_sect, 0, SDIO_BYTES_PER_SECTOR);
+    sdcard_readwrite(SDIO_READ, sign_sect, 1, SDIO_BYTES_PER_SECTOR, NAND_DUMP_SIGNATURE_SECTOR, NULL, DEVICE_ID_SDCARD_PATCHED);
 
-    signature_correct = (signature[0] == NAND_DUMP_SIGNATURE);
+    signature_correct = (sign_sect->signature == NAND_DUMP_SIGNATURE);
 
     memset(io_buffer, 0, SDIO_BYTES_PER_SECTOR);
     sdcard_readwrite(SDIO_READ, io_buffer, 1, SDIO_BYTES_PER_SECTOR, 0, NULL, DEVICE_ID_SDCARD_PATCHED);
@@ -258,9 +258,15 @@ void dump_nand_complete()
 
     //! write marker to SD card from which we can auto detect NAND dump
     //! we can actually use that for settings
-    u32 * signature = (u32*)io_buffer;
-    memset(io_buffer, 0, SDIO_BYTES_PER_SECTOR);
-    signature[0] = NAND_DUMP_SIGNATURE;
+    sdio_nand_signature_sector_t * sign_sect = (u32*)io_buffer;
+    memset(sign_sect, 0, SDIO_BYTES_PER_SECTOR);
+    sign_sect->signature = NAND_DUMP_SIGNATURE;
+    sign_sect->slc_base_sector = SLC_BASE_SECTORS;
+    sign_sect->slc_sector_count = SLC_SECTOR_COUNT * (SLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
+    sign_sect->slccmpt_base_sector = SLCCMPT_BASE_SECTORS;
+    sign_sect->slccmpt_sector_count = SLC_SECTOR_COUNT * (SLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
+    sign_sect->mlc_base_sector = MLC_BASE_SECTORS;
+    sign_sect->mlc_sector_count = mlc_sector_count * (MLC_BYTES_PER_SECTOR / SDIO_BYTES_PER_SECTOR);
 
     sdcard_readwrite(SDIO_WRITE, io_buffer, 1, SDIO_BYTES_PER_SECTOR, NAND_DUMP_SIGNATURE_SECTOR, NULL, DEVICE_ID_SDCARD_PATCHED);
 

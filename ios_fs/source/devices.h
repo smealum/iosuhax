@@ -28,7 +28,18 @@
 #define MLC_NAND_TYPE_8GB                   1
 
 #define NAND_DUMP_SIGNATURE_SECTOR          0x01
-#define NAND_DUMP_SIGNATURE                 0x48415858 // HAXX
+#define NAND_DUMP_SIGNATURE                 0x4841585844554d50ULL // HAXXDUMP
+
+typedef _sdio_nand_signature_sector_t
+{
+    u64 signature;              // HAXXDUMP
+    u32 slc_base_sector;        // base sector of slc dump
+    u32 slc_sector_count;       // sector count of slc in SDIO sectors
+    u32 slccmpt_base_sector;    // base sector of slccmpt dump
+    u32 slccmpt_sector_count;   // sector count of slc in SDIO sectors
+    u32 mlc_base_sector;        // base sector of slccmpt dump
+    u32 mlc_sector_count;       // sector count of mlc in SDIO sectors
+} sdio_nand_signature_sector_t
 
 
 typedef void (*read_write_callback_t)(int, int);
