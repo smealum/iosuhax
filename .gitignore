@@ -10,3 +10,9 @@
 /ios_fs/*.syms
 /wupserver/*.elf
 /wupserver/*.bin
+/tools/sdio_nand_extractor/bin/Release/*.exe
+/tools/sdio_nand_extractor/obj/Release/*.o
+/tools/sdio_nand_extractor_old_offsets/bin/Release/*.exe
+/tools/sdio_nand_extractor_old_offsets/obj/Release/*.o
+/tools/sdio_nand_extractor_old_offsets/*.ini
+/tools/sdio_nand_extractor/*.ini
