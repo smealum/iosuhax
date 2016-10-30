@@ -611,6 +611,26 @@ def unmount_sd():
     ret = w.close(handle)
     print(hex(ret))
 
+def mount_slccmpt01():
+    handle = w.open("/dev/fsa", 0)
+    print(hex(handle))
+
+    ret = w.FSA_Mount(handle, "/dev/slccmpt01", "/vol/storage_slccmpt01", 2)
+    print(hex(ret))
+
+    ret = w.close(handle)
+    print(hex(ret))
+
+def unmount_slccmpt01():
+    handle = w.open("/dev/fsa", 0)
+    print(hex(handle))
+
+    ret = w.FSA_Unmount(handle, "/vol/storage_slccmpt01", 2)
+    print(hex(ret))
+
+    ret = w.close(handle)
+    print(hex(ret))
+
 def mount_odd_content():
     handle = w.open("/dev/fsa", 0)
     print(hex(handle))
