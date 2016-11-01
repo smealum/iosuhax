@@ -11,7 +11,13 @@ PATCHED_SECTIONS := $(addprefix patched_sections/, $(addsuffix .bin, $(SECTIONS)
 
 all: fw.img
 
-sections/%.bin: $(INPUT)
+$(INPUT):
+	@cd bin && python getfwimg.py
+
+gensections:
+	@cd sections && python gensections.py
+
+sections/%.bin: $(INPUT) gensections 
 	@mkdir -p sections
 	@python scripts/anpack.py -in $(INPUT) -e $*,$@
 
@@ -31,9 +37,11 @@ patched_sections/%.bin: sections/%.bin patches/%.s wupserver/wupserver.bin ios_f
 patch: $(PATCHED_SECTIONS)
 
 fw.img: $(INPUT) $(PATCHED_SECTIONS)
-	python scripts/anpack.py -in $(INPUT) -out fw.img $(foreach s,$(SECTIONS),-r $(s),patched_sections/$(s).bin) $(foreach s,$(BSS_SECTIONS),-b $(s),patched_sections/$(s).bin)
-
+	@python scripts/anpack.py -in $(INPUT) -out fw.img $(foreach s,$(SECTIONS),-r $(s),patched_sections/$(s).bin) $(foreach s,$(BSS_SECTIONS),-b $(s),patched_sections/$(s).bin)
+ 
 clean:
-	@cd wupserver && make clean
-	@rm -f fw.img
+	@-rm -f bin/fw.img
+	@-rm -f sections/*.bin
+	@-rm -r patched_sections
+	@make -C wupserver clean
 	@make -C ios_fs clean

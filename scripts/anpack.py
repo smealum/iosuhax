@@ -1,3 +1,4 @@
+import codecs
 import sys
 import struct
 import hashlib
@@ -161,10 +162,10 @@ class ancast:
 	def encrypt(self, file, offset):
 		key = "you gon have to fill this out yourself"
 		iv = "and this too"
-		key = key.decode('hex');
-		iv = iv.decode('hex');
+		key = codecs.decode(key, 'hex')
+		iv = codecs.decode(iv, 'hex')
 		file.seek(offset)
-		buffer = ""
+		buffer = b""
 		hash = hashlib.sha1()
 		while True:
 			cipher = AES.new(key, AES.MODE_CBC, iv)
