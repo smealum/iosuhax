@@ -4,7 +4,6 @@
 # is d674201b and the crc32 of the fw.img.full.bin is 9f2c91ff in the end
 wiiu_common_key = "you have to insert this yourself"
 starbuck_ancast_key = "you have to insert this yourself"
-starbuck_ancast_iv = "you have to insert this yourself"
 
 # Don't edit past here
 
@@ -22,7 +21,6 @@ print("somewhat simple 5.5.1 fw.img downloader")
 #prepare keys
 wiiu_common_key = codecs.decode(wiiu_common_key, 'hex')
 starbuck_ancast_key = codecs.decode(starbuck_ancast_key, 'hex')
-starbuck_ancast_iv = codecs.decode(starbuck_ancast_iv, 'hex')
 
 if zlib.crc32(wiiu_common_key) & 0xffffffff != 0x7a2160de:
     print("wiiu_common_key is wrong")
@@ -31,11 +29,6 @@ if zlib.crc32(wiiu_common_key) & 0xffffffff != 0x7a2160de:
 if zlib.crc32(starbuck_ancast_key) & 0xffffffff != 0xe6e36a34:
     print("starbuck_ancast_key is wrong")
     sys.exit(1)
-
-if zlib.crc32(starbuck_ancast_iv) & 0xffffffff != 0xb3f79023:
-    print("starbuck_ancast_iv is wrong")
-    sys.exit(1)
-
 
 print("downloading osv10 cetk")
 
@@ -64,14 +57,11 @@ if not f:
 
 print("decrypt first")
 #decrypt fw img with our decrypted key
-buffer = ""
-
 with open("fw.img","wb") as fout:
     iv = codecs.decode("00090000000000000000000000000000", "hex")
     cipher = AES.new(dec_key, AES.MODE_CBC, iv)
-
     while True:
-        dec = f.read(0x4000)
+        dec = f.read(0x40000)
         if len(dec) < 0x10:
                 break
         enc = cipher.decrypt(dec)
@@ -83,17 +73,42 @@ with open('fw.img', 'rb') as f:
         sys.exit(2)
 
 print("decrypt second")
-#decrypt ancast image with ancast key and iv
+#decrypt ancast image with ancast key and (for now) wrong iv
 with open("fw.img", "rb") as f:
     with open("fw.img.full.bin","wb") as fout:
         fout.write(f.read(0x200))
-        cipher = AES.new(starbuck_ancast_key, AES.MODE_CBC, starbuck_ancast_iv)
+        fake_iv = codecs.decode("00000000000000000000000000000000", "hex")
+        cipher = AES.new(starbuck_ancast_key, AES.MODE_CBC, fake_iv)
         while True:
-            dec = f.read(0x4000)
+            dec = f.read(0x40000)
             if len(dec) < 0x10:
                 break
             enc = cipher.decrypt(dec)
             fout.write(enc)
+
+print("decrypt third")
+#fix up ancast image with correct iv
+with open('fw.img.full.bin', 'rb+') as f:
+    #grab iv from decrypted image
+    f.seek(0x86B3C,0)
+    starbuck_ancast_iv = f.read(0x10)
+    if zlib.crc32(starbuck_ancast_iv) & 0xffffffff != 0xb3f79023:
+        print("starbuck_ancast_iv is wrong")
+        sys.exit(1)
+    #save key and iv for later usage
+    with open('../scripts/keys.py', 'w') as keys_store:
+        keys_store.write("key=\""+codecs.encode(starbuck_ancast_key, 'hex')+"\"\n")
+        keys_store.write("iv=\""+codecs.encode(starbuck_ancast_iv, 'hex')+"\"\n")
+    #calculate correct first bytes with correct iv
+    f.seek(0x200,0)
+    starbuck_ancast_iv = bytearray(starbuck_ancast_iv)
+    partToXor = bytearray(f.read(0x10))
+    result = bytearray(0x10)
+    for i in range(0x10):
+        result[i] = partToXor[i]^starbuck_ancast_iv[i]
+    f.seek(0x200,0)
+    #write in corrected bytes
+    f.write(str(result))
 
 with open('fw.img.full.bin', 'rb') as f:
     if (zlib.crc32(f.read()) & 0xffffffff) != 0x9f2c91ff:
