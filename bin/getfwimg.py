@@ -97,8 +97,8 @@ with open('fw.img.full.bin', 'rb+') as f:
         sys.exit(1)
     #save key and iv for later usage
     with open('../scripts/keys.py', 'w') as keys_store:
-        keys_store.write("key=\""+str(codecs.encode(starbuck_ancast_key, 'hex'))+"\"\n")
-        keys_store.write("iv=\""+str(codecs.encode(starbuck_ancast_iv, 'hex'))+"\"\n")
+        keys_store.write("key=\""+codecs.encode(starbuck_ancast_key, 'hex').decode()+"\"\n")
+        keys_store.write("iv=\""+codecs.encode(starbuck_ancast_iv, 'hex').decode()+"\"\n")
     #calculate correct first bytes with correct iv
     f.seek(0x200,0)
     starbuck_ancast_iv = bytearray(starbuck_ancast_iv)
