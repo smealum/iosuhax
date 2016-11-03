@@ -18,9 +18,9 @@ otpbinpath = os.path.abspath("..\\..\\otp.bin")
 if os.path.exists(otpbinpath):
     with open(otpbinpath,'rb+') as f:
         f.seek(0x90)
-        starbuck_ancast_key = hex(readu128be(f))[2:-1].upper()
+        starbuck_ancast_key = hex(readu128be(f))[2:].upper().replace('L','')
         f.seek(0xE0)
-        wiiu_common_key = hex(readu128be(f))[2:-1].upper()
+        wiiu_common_key = hex(readu128be(f))[2:].upper().replace('L','')
 try:
     from urllib.request import urlopen
 except ImportError:
