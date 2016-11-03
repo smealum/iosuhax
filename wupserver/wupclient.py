@@ -18,8 +18,8 @@ def copy_word(buffer, w, offset):
 
 def get_string(buffer, offset):
     s = buffer[offset:]
-    if '\x00' in s:
-        return s[:s.index('\x00')].decode("utf-8")
+    if b'\x00' in s:
+        return s[:s.index(b'\x00')].decode("utf-8")
     else:
         return s.decode("utf-8")
 
@@ -196,10 +196,10 @@ class wupclient:
         inbuffer = buffer(0x520)
         copy_word(inbuffer, dir_handle, 0x4)
         (ret, data) = self.ioctl(handle, 0x0B, inbuffer, 0x293)
-        data = data[4:]
+        data = bytearray(data[4:])
         unk = data[:0x64]
         if ret == 0:
-            return (ret, {"name" : get_string(data, 0x64), "is_file" : (ord(unk[0]) & 128) != 128, "unk" : unk})
+            return (ret, {"name" : get_string(data, 0x64), "is_file" : (unk[0] & 128) != 128, "unk" : unk})
         else:
             return (ret, None)
 
