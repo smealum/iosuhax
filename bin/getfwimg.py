@@ -7,10 +7,20 @@ starbuck_ancast_key = "you have to insert this yourself"
 
 # Don't edit past here
 
-import os, sys, zlib
+import os, sys, zlib, struct
 import codecs
 from Crypto.Cipher import AES
 
+def readu128be(f):
+    return (struct.unpack('>Q',f.read(8))[0] << 64) + struct.unpack('>Q',f.read(8))[0]
+
+otpbinpath = os.path.abspath("..\\..\\otp.bin")
+if os.path.exists(otpbinpath):
+    with open(otpbinpath,'rb+') as f:
+        f.seek(0x90)
+        starbuck_ancast_key = hex(readu128be(f))[2:].upper().replace('L','')
+        f.seek(0xE0)
+        wiiu_common_key = hex(readu128be(f))[2:].upper().replace('L','')
 try:
     from urllib.request import urlopen
 except ImportError:
