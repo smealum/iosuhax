@@ -12,19 +12,15 @@ import codecs
 from Crypto.Cipher import AES
 
 def readu128be(f):
-    keypart1 = struct.unpack('>Q',f.read(8))[0]
-    keypart2 = struct.unpack('>Q',f.read(8))[0]
-    return keypart2 + (keypart1*0x10000000000000000)
+    return (struct.unpack('>Q',f.read(8))[0] << 64) + struct.unpack('>Q',f.read(8))[0]
 
 otpbinpath = os.path.abspath("..\\..\\otp.bin")
 if os.path.exists(otpbinpath):
     with open(otpbinpath,'rb+') as f:
         f.seek(0x90)
-        ancast = readu128be(f)
-        starbuck_ancast_key = hex(ancast)[2:-1].upper()
+        starbuck_ancast_key = hex(readu128be(f))[2:-1].upper()
         f.seek(0xE0)
-        common = readu128be(f)
-        wiiu_common_key = hex(common)[2:-1].upper()
+        wiiu_common_key = hex(readu128be(f))[2:-1].upper()
 try:
     from urllib.request import urlopen
 except ImportError:
