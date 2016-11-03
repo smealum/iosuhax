@@ -7,26 +7,27 @@ starbuck_ancast_key = "you have to insert this yourself"
 
 # Don't edit past here
 
-import os, sys, zlib, struct
+import os, sys, zlib, binascii
 import codecs
 from Crypto.Cipher import AES
 
-def readu128be(f):
-    return (struct.unpack('>Q',f.read(8))[0] << 64) + struct.unpack('>Q',f.read(8))[0]
-
-otpbinpath = os.path.abspath("..\\..\\otp.bin")
-if os.path.exists(otpbinpath):
-    with open(otpbinpath,'rb+') as f:
-        f.seek(0x90)
-        starbuck_ancast_key = hex(readu128be(f))[2:].upper().replace('L','')
-        f.seek(0xE0)
-        wiiu_common_key = hex(readu128be(f))[2:].upper().replace('L','')
 try:
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen
 
 print("somewhat simple 5.5.1 fw.img downloader")
+
+otpbinpath = os.path.abspath("../../otp.bin")
+if os.path.exists(otpbinpath):
+    with open(otpbinpath,'rb') as f:
+        f.seek(0x90)
+        starbuck_ancast_key = binascii.hexlify(f.read(16))
+        f.seek(0xE0)
+        wiiu_common_key = binascii.hexlify(f.read(16))
+        print("Using keys from otp.bin")
+else:
+    print("Using keys edited into this file")
 
 #prepare keys
 wiiu_common_key = codecs.decode(wiiu_common_key, 'hex')
