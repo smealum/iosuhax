@@ -37,6 +37,11 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 	mov r0, #0
 	bx lr
 
+; patch cached cert check
+.org 0x0504C7BC
+	.arm
+	mov r0, #0
+
 ; patch cert verification
 .org 0x05052A90
 	.arm
