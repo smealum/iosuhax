@@ -109,8 +109,8 @@ FS_REGISTERMDPHYSICALDEVICE equ 0x10718860
 ; 	b mlcRead1_end_hook
 
 ; some selective logging function : enable all the logging !
-;.org 0x107F5720
-;	b FS_SYSLOG_OUTPUT
+.org 0x107F5720
+	b FS_SYSLOG_OUTPUT
 
 ; our own custom codes starts here
 .org _text_start

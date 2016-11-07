@@ -16,3 +16,5 @@
 /tools/sdio_nand_extractor_old_offsets/obj/Release/*.o
 /tools/sdio_nand_extractor_old_offsets/*.ini
 /tools/sdio_nand_extractor/*.ini
+/scripts/keys.py
+/scripts/*.pyc

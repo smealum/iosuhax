@@ -10,7 +10,7 @@
 
 // TODO : errno stuff ?
 
-bool serverKilled;
+static bool serverKilled;
 
 // overwrites command_buffer with response
 // returns length of response (or 0 for no response, negative for error)
@@ -143,8 +143,6 @@ void serverClientHandler(int sock)
 
 void serverListenClients()
 {
-	serverKilled = false;
-
 	int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	struct sockaddr_in server;
@@ -155,20 +153,28 @@ void serverListenClients()
 	server.sin_port = 1337;
 	server.sin_addr.s_addr = 0;
 
-	int ret = bind(sock, (struct sockaddr *)&server, sizeof(server));
+	if(bind(sock, (struct sockaddr *)&server, sizeof(server)) < 0)
+    {
+        closesocket(sock);
+        return;
+    }
+
+    if(listen(sock, 1) < 0)
+    {
+        closesocket(sock);
+        return;
+    }
 
 	while(!serverKilled)
 	{
-		ret = listen(sock, 1);
-		
-		if(ret >= 0)
-		{
-			int csock = accept(sock, NULL, NULL);
-			
-			// TODO : threading
-			serverClientHandler(csock);
-		}else usleep(1000);
+        int csock = accept(sock, NULL, NULL);
+        if(csock < 0)
+            break;
+
+        serverClientHandler(csock);
 	}
+
+	closesocket(sock);
 }
 
 void _main()
@@ -190,7 +196,7 @@ void _main()
 
 		int ret1 = IFMGRNCL_GetInterfaceStatus(1, &out1);
 		if(!ret1 && out1 == 1) break;
-		
+
 		print(0, 0, "initializing /dev/net/ifmgr/ncl... %08X %08X %08X %08X ", ret0, ret1, out0, out1);
 
 		usleep(1000);
@@ -206,10 +212,14 @@ void _main()
 	usleep(5*1000*1000);
 	print(0, 10, "attempting sockets !");
 
-	serverListenClients();
+    serverKilled = false;
 
 	while(1)
 	{
+	    if(!serverKilled)
+        {
+	         serverListenClients();
+        }
 		usleep(1000*1000);
 	}
 }
