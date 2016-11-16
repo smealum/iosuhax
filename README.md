@@ -29,6 +29,8 @@ Be aware that this is still in <b>development</b> and that normal users should n
 - smea
 - dimok
 - kanye_west
+- FIX94
+- Maschell
 
 -------------------
 # Original README by smea

@@ -14,8 +14,6 @@ void createDevThread_entry(int initialization_type)
     if(initialization_type == INITIALIZING_MMC)
     {
         sdcard_init();
-        clearScreen(0x000000FF);
-        _printf(20, 20, "welcome to redNAND!");
     }
 
     //if(initialization_type == INITIALIZING_FLA)
@@ -27,6 +25,9 @@ void createDevThread_entry(int initialization_type)
     {
         if(check_nand_dump() == 0)
         {
+            clearScreen(0x000000FF);
+            _printf(20, 20, "welcome to redNAND!");
+
             dump_nand_complete();
         }
     }

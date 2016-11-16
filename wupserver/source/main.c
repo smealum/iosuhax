@@ -179,11 +179,11 @@ void serverListenClients()
 
 void _main()
 {
-	clearScreen(0xFF0000FF);
+	drawSplashScreen();
 
 	while(ifmgrnclInit() <= 0)
 	{
-		print(0, 0, "opening /dev/net/ifmgr/ncl...");
+		//print(0, 0, "opening /dev/net/ifmgr/ncl...");
 		usleep(1000);
 	}
 
@@ -197,20 +197,20 @@ void _main()
 		int ret1 = IFMGRNCL_GetInterfaceStatus(1, &out1);
 		if(!ret1 && out1 == 1) break;
 
-		print(0, 0, "initializing /dev/net/ifmgr/ncl... %08X %08X %08X %08X ", ret0, ret1, out0, out1);
+		//print(0, 0, "initializing /dev/net/ifmgr/ncl... %08X %08X %08X %08X ", ret0, ret1, out0, out1);
 
 		usleep(1000);
 	}
 
 	while(socketInit() <= 0)
 	{
-		print(0, 0, "opening /dev/socket...");
+		//print(0, 0, "opening /dev/socket...");
 		usleep(1000);
 	}
 
-	print(0, 0, "opened /dev/socket !");
+	//print(0, 0, "opened /dev/socket !");
 	usleep(5*1000*1000);
-	print(0, 10, "attempting sockets !");
+	//print(0, 10, "attempting sockets !");
 
     serverKilled = false;
 
