@@ -3,6 +3,7 @@
 
 // slightly stolen from ctrulib
 #include <stdint.h>
+#include <stdio.h>
 
 #define SOL_SOCKET	0xFFFF
 

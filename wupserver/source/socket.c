@@ -4,13 +4,14 @@
 #include "socket.h"
 #include "svc.h"
 #include "text.h"
+#include "imports.h"
 
 static int socket_handle = 0;
 
 int socketInit()
 {
 	if(socket_handle) return socket_handle;
-	
+
 	int ret = svcOpen("/dev/socket", 0);
 
 	if(ret > 0)

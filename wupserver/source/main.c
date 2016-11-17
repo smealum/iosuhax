@@ -7,8 +7,8 @@
 #include "fsa.h"
 #include "svc.h"
 #include "text.h"
-
-// TODO : errno stuff ?
+#include "logger.h"
+#include "ipc.h"
 
 static bool serverKilled;
 
@@ -177,9 +177,11 @@ void serverListenClients()
 	closesocket(sock);
 }
 
+
 void _main()
 {
 	drawSplashScreen();
+    ipc_init();
 
 	while(ifmgrnclInit() <= 0)
 	{
@@ -207,6 +209,8 @@ void _main()
 		//print(0, 0, "opening /dev/socket...");
 		usleep(1000);
 	}
+
+    log_init(0xC0A8B203);
 
 	//print(0, 0, "opened /dev/socket !");
 	usleep(5*1000*1000);

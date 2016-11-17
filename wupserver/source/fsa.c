@@ -108,6 +108,20 @@ int FSA_ReadDir(int fd, int handle, directoryEntry_s* out_data)
 	return ret;
 }
 
+int FSA_RewindDir(int fd, int handle)
+{
+	u8* iobuf = allocIobuf();
+	u32* inbuf = (u32*)iobuf;
+	u32* outbuf = (u32*)&iobuf[0x520];
+
+	inbuf[1] = handle;
+
+	int ret = svcIoctl(fd, 0x0C, inbuf, 0x520, outbuf, 0x293);
+
+	freeIobuf(iobuf);
+	return ret;
+}
+
 int FSA_CloseDir(int fd, int handle)
 {
 	u8* iobuf = allocIobuf();
@@ -117,6 +131,20 @@ int FSA_CloseDir(int fd, int handle)
 	inbuf[1] = handle;
 
 	int ret = svcIoctl(fd, 0x0D, inbuf, 0x520, outbuf, 0x293);
+
+	freeIobuf(iobuf);
+	return ret;
+}
+
+int FSA_ChangeDir(int fd, char* path)
+{
+	u8* iobuf = allocIobuf();
+	u32* inbuf = (u32*)iobuf;
+	u32* outbuf = (u32*)&iobuf[0x520];
+
+	strncpy((char*)&inbuf[0x01], path, 0x27F);
+
+	int ret = svcIoctl(fd, 0x05, inbuf, 0x520, outbuf, 0x293);
 
 	freeIobuf(iobuf);
 	return ret;
@@ -196,10 +224,65 @@ int FSA_StatFile(int fd, int handle, fileStat_s* out_data)
 	return ret;
 }
 
-// int FSA_CloseFile(int fd, int fileHandle)
-// {
-// 	return _FSA_CloseFile(fd, fileHandle);
-// }
+int FSA_CloseFile(int fd, int fileHandle)
+{
+	u8* iobuf = allocIobuf();
+	u32* inbuf = (u32*)iobuf;
+	u32* outbuf = (u32*)&iobuf[0x520];
+
+	inbuf[1] = fileHandle;
+
+	int ret = svcIoctl(fd, 0x15, inbuf, 0x520, outbuf, 0x293);
+
+	freeIobuf(iobuf);
+	return ret;
+}
+
+int FSA_SetPosFile(int fd, int fileHandle, u32 position)
+{
+	u8* iobuf = allocIobuf();
+	u32* inbuf = (u32*)iobuf;
+	u32* outbuf = (u32*)&iobuf[0x520];
+
+	inbuf[1] = fileHandle;
+	inbuf[2] = position;
+
+	int ret = svcIoctl(fd, 0x12, inbuf, 0x520, outbuf, 0x293);
+
+	freeIobuf(iobuf);
+	return ret;
+}
+
+int FSA_GetStat(int fd, char *path, fileStat_s* out_data)
+{
+	u8* iobuf = allocIobuf();
+	u32* inbuf = (u32*)iobuf;
+	u32* outbuf = (u32*)&iobuf[0x520];
+
+	strncpy((char*)&inbuf[0x01], path, 0x27F);
+	inbuf[0x284/4] = 5;
+
+	int ret = svcIoctl(fd, 0x18, inbuf, 0x520, outbuf, 0x293);
+
+	if(out_data) memcpy(out_data, &outbuf[1], sizeof(fileStat_s));
+
+	freeIobuf(iobuf);
+	return ret;
+}
+
+int FSA_Remove(int fd, char *path)
+{
+	u8* iobuf = allocIobuf();
+	u32* inbuf = (u32*)iobuf;
+	u32* outbuf = (u32*)&iobuf[0x520];
+
+	strncpy((char*)&inbuf[0x01], path, 0x27F);
+
+	int ret = svcIoctl(fd, 0x08, inbuf, 0x520, outbuf, 0x293);
+
+	freeIobuf(iobuf);
+	return ret;
+}
 
 // type 4 :
 // 		0x08 : device size in sectors (u64)
