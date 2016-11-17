@@ -10,6 +10,10 @@ We continue to work on this repo the dropped iosuhax project by smea and continu
 - automatic detection of existing NAND dump and launch of redNAND directly with same fw.img
 - tool to extract nand dump from SD to a file or inject from a file to SD card
 - install signature checks patched (FIX94)
+- boot movie patches (Maschell)
+- build of cfw for sysNAND and redNAND
+- custom /dev/iosuhax node for access from PPC
+- custom splash screen when launching fw.img
 
 # Getting the dump out of SD card or inject a dump file into the SD card
 I wrote a windows tool to dump only one single NAND dump image from the SD card to your PC for backup reasons. You can also inject a
