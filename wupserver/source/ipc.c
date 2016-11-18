@@ -69,6 +69,7 @@
 #define IOCTL_FSA_RAW_READ          0x55
 #define IOCTL_FSA_RAW_WRITE         0x56
 #define IOCTL_FSA_RAW_CLOSE         0x57
+#define IOCTL_FSA_CHANGEMODE        0x58
 
 static u8 threadStack[0x1000] __attribute__((aligned(0x20)));
 
@@ -392,6 +393,15 @@ static int ipc_ioctl(ipcmessage *message)
         int deviceHandle = message->ioctl.buffer_in[1];
 
         message->ioctl.buffer_io[0] = FSA_RawClose(fd, deviceHandle);
+        break;
+    }
+    case IOCTL_FSA_CHANGEMODE:
+    {
+        int fd = message->ioctl.buffer_in[0];
+        char *path = ((char *)message->ioctl.buffer_in) + message->ioctl.buffer_in[1];
+        int mode = message->ioctl.buffer_in[2];
+
+        message->ioctl.buffer_io[0] = FSA_ChangeMode(fd, path, mode);
         break;
     }
     default:
