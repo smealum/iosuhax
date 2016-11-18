@@ -291,7 +291,7 @@ int FSA_ChangeMode(int fd, char *path, int mode)
 	u32* outbuf = (u32*)&iobuf[0x520];
 
 	strncpy((char*)&inbuf[0x01], path, 0x27F);
-	inbuf[0x284/4] = mode
+	inbuf[0x284/4] = mode;
 	inbuf[0x288/4] = 0x777; // mask
 
 	int ret = svcIoctl(fd, 0x20, inbuf, 0x520, outbuf, 0x293);
