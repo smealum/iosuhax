@@ -64,6 +64,11 @@
 #define IOCTL_FSA_REMOVE            0x50
 #define IOCTL_FSA_REWINDDIR         0x51
 #define IOCTL_FSA_CHDIR             0x52
+#define IOCTL_FSA_RENAME            0x53
+#define IOCTL_FSA_RAW_OPEN          0x54
+#define IOCTL_FSA_RAW_READ          0x55
+#define IOCTL_FSA_RAW_WRITE         0x56
+#define IOCTL_FSA_RAW_CLOSE         0x57
 
 static u8 threadStack[0x1000] __attribute__((aligned(0x20)));
 
@@ -349,6 +354,44 @@ static int ipc_ioctl(ipcmessage *message)
         char *path = ((char *)message->ioctl.buffer_in) + message->ioctl.buffer_in[1];
 
         message->ioctl.buffer_io[0] = FSA_ChangeDir(fd, path);
+        break;
+    }
+    case IOCTL_FSA_RAW_OPEN:
+    {
+        int fd = message->ioctl.buffer_in[0];
+        char *path = ((char *)message->ioctl.buffer_in) + message->ioctl.buffer_in[1];
+
+        message->ioctl.buffer_io[0] = FSA_RawOpen(fd, path, (int*)(message->ioctl.buffer_io + 1));
+        break;
+    }
+    case IOCTL_FSA_RAW_READ:
+    {
+        int fd = message->ioctl.buffer_in[0];
+        u32 block_size = message->ioctl.buffer_in[1];
+        u32 cnt = message->ioctl.buffer_in[2];
+        u64 sector_offset = ((u64)message->ioctl.buffer_in[3] << 32ULL) | message->ioctl.buffer_in[4];
+        int deviceHandle = message->ioctl.buffer_in[5];
+
+        message->ioctl.buffer_io[0] = FSA_RawRead(fd, ((u8*)message->ioctl.buffer_io) + 0x40, block_size, cnt, sector_offset, deviceHandle);
+        break;
+    }
+    case IOCTL_FSA_RAW_WRITE:
+    {
+        int fd = message->ioctl.buffer_in[0];
+        u32 block_size = message->ioctl.buffer_in[1];
+        u32 cnt = message->ioctl.buffer_in[2];
+        u64 sector_offset = ((u64)message->ioctl.buffer_in[3] << 32ULL) | message->ioctl.buffer_in[4];
+        int deviceHandle = message->ioctl.buffer_in[5];
+
+        message->ioctl.buffer_io[0] = FSA_RawWrite(fd, ((u8*)message->ioctl.buffer_in) + 0x40, block_size, cnt, sector_offset, deviceHandle);
+        break;
+    }
+    case IOCTL_FSA_RAW_CLOSE:
+    {
+        int fd = message->ioctl.buffer_in[0];
+        int deviceHandle = message->ioctl.buffer_in[1];
+
+        message->ioctl.buffer_io[0] = FSA_RawClose(fd, deviceHandle);
         break;
     }
     default:
