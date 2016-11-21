@@ -8,6 +8,7 @@
 .org 0xE0030D34
 	mov r0, #0
 
+; allow any region title launch
 .org 0xE0030498
 	mov r0, #0
 
