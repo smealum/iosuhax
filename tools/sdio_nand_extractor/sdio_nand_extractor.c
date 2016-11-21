@@ -337,7 +337,7 @@ void writeToSD(int nandType, int driveLetter, const char *acFromFilepath)
         else  {
             sign_sector.nand_descriptions[nandType].nand_type = be32(NAND_DESC_TYPE_MLC);
         }
-        sign_sector.nand_descriptions[nandType].base_sector = be32(nand_offset);
+        sign_sector.nand_descriptions[nandType].base_sector = be32((uint32_t)(nand_offset / BYTES_PER_SECTOR));
         sign_sector.nand_descriptions[nandType].sector_count = be32((uint32_t)(ullDone / BYTES_PER_SECTOR));
 
         memset(dataBuffer, 0, BYTES_PER_SECTOR);
@@ -580,7 +580,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     mainHwnd = CreateWindowEx (
            0,                   /* Extended possibilites for variation */
            szClassName,         /* Classname */
-           "sdio nand extractor v1.0 by Dimok",       /* Title Text */
+           "sdio nand extractor v1.1 by Dimok",       /* Title Text */
            WS_OVERLAPPEDWINDOW, /* default window */
            CW_USEDEFAULT,       /* Windows decides the position */
            CW_USEDEFAULT,       /* where the window ends up on the screen */
