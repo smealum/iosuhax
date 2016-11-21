@@ -8,10 +8,13 @@
 .org 0xE0030D34
 	mov r0, #0
 
+.org 0xE0030498
+    mov r0, #0
+    
 ; allow region free titles
-.org 0xE0030DD8
-    mov r0, #0
-.org 0xE0030EB8
-    mov r0, #0
+;.org 0xE0030DD8
+ ;   mov r0, #0
+;.org 0xE0030EB8
+;    mov r0, #0
     
 .Close
