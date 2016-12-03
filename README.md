@@ -1,4 +1,43 @@
 # iosuhax
+We continue to work on this repo the dropped iosuhax project by smea and continue to improve it and make it more user friendly.
+
+# Features this repo offers additionally to the original iosuhax from smea
+- improved NAND dump process with reliable dumps
+- creating NAND dumps at the beginning of SD card, rest of the SD card is available for other usage
+- detection of not existing dump on SD card with user interaction (POWER button) to auto format and prepare SD card for redNAND
+- automatic FAT32 partition creation for rest of the available space on SD card
+- automatic NAND type detection and dump process adapting to it (8GB or 32GB MLC)
+- automatic detection of existing NAND dump and launch of redNAND directly with same fw.img
+- tool to extract nand dump from SD to a file or inject from a file to SD card
+- install signature checks patched (FIX94)
+- boot movie patches (Maschell)
+- build of cfw for sysNAND and redNAND
+- custom /dev/iosuhax node for access from PPC
+- custom splash screen when launching fw.img
+
+# Getting the dump out of SD card or inject a dump file into the SD card
+I wrote a windows tool to dump only one single NAND dump image from the SD card to your PC for backup reasons. You can also inject a
+dump image back into an SD card with it. If you inject into a fresh SD card be ware to create a FAT32 partition above the necessary
+space for the NAND dump (not at the beginning of the SD card). You might need to run the application with administrator rights to be 
+able to access the SD card. This depends on your Windows configuration.
+Linux and MAC users can use dd to dump or inject the data. (TODO: provide the commands...)
+
+# WARNING (READ THIS)
+Be aware that this is still in <b>development</b> and that normal users should not touch this if they don't know exactly what they do.
+
+<b>THIS CAN BRICK YOUR WII U IF NOT USED CORRECTLY!!! THE DEVELOPERS ARE NOT RESPONSIBLE FOR ANY BRICKS YOU DO TO YOUR CONSOLE BY USING THIS SOFTWARE!!!</b>
+
+<b>DON'T UPDATE SYSNAND or REDNAND!!! IT MIGHT BRICK YOUR CONSOLE!</b>
+
+# Credits
+- smea
+- dimok
+- kanye_west
+- FIX94
+- Maschell
+
+-------------------
+# Original README by smea
 
 this repo contains some of the tools I wrote when working on the wii u. iosuhax is essentially a set of patches for IOSU which provides extra features which can be useful for developers. I'm releasing this because I haven't really touched it since the beginning of january and don't plan on getting back to it.
 

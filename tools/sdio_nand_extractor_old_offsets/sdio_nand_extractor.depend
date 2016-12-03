@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1477742759 source:d:\loadiine_code\sdio_nand_extractor\sdio_nand_extractor.c
+	<windows.h>
+	<winioctl.h>
+	<stdio.h>
+	<unistd.h>
+	<stdarg.h>
+	<stdint.h>
+
+1477746824 source:d:\loadiine_code\iosuhax\tools\sdio_nand_extractor_old_offsets\sdio_nand_extractor.c
+	<windows.h>
+	<winioctl.h>
+	<stdio.h>
+	<unistd.h>
+	<stdarg.h>
+	<stdint.h>
+

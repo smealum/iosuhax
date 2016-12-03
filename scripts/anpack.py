@@ -1,6 +1,8 @@
+import codecs
 import sys
 import struct
 import hashlib
+import keys
 from Crypto.Cipher import AES
 
 class elf32_ehdr:
@@ -159,10 +161,10 @@ class ancast:
 		self.elf.bss_sections(sections)
 
 	def encrypt(self, file, offset):
-		key = "you gon have to fill this out yourself"
-		iv = "and this too"
+		key = codecs.decode(keys.key, 'hex')
+		iv = codecs.decode(keys.iv, 'hex')
 		file.seek(offset)
-		buffer = ""
+		buffer = b""
 		hash = hashlib.sha1()
 		while True:
 			cipher = AES.new(key, AES.MODE_CBC, iv)

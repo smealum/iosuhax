@@ -37,6 +37,22 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 	mov r0, #0
 	bx lr
 
+; patch cached cert check
+.org 0x0504C7BC
+	.arm
+	mov r0, #0
+
+; patch cert verification
+.org 0x05052A90
+	.arm
+	mov r0, #0
+	bx lr
+
+.org 0x05014CAC
+	.thumb
+	mov r0, #0
+	bx lr
+
 .org 0x050282AE
 	.thumb
 	bl launch_os_hook
@@ -51,7 +67,7 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 		mov r11, r0
 		push {r0-r11,lr}
 		sub sp, #8
-		
+
 		mov r0, #0x78
 		str r0, [sp] ; prio
 		mov r0, #1
@@ -80,7 +96,7 @@ NEW_TIMEOUT equ (0xFFFFFFFF) ; over an hour
 		sub sp, #8
 
 		bl MCP_SYSLOG_OUTPUT_T
-		
+
 		mov r0, #0
 		bl MCP_FSA_OPEN_T
 

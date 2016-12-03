@@ -2,6 +2,30 @@
 .arm
 .align 4
 
+.global svcCreateThread
+.type svcCreateThread, %function
+svcCreateThread:
+	.word 0xE7F000F0
+	bx lr
+
+.global svcStartThread
+.type svcStartThread, %function
+svcStartThread:
+	.word 0xE7F007F0
+	bx lr
+
+.global svcCreateMessageQueue
+.type svcCreateMessageQueue, %function
+svcCreateMessageQueue:
+	.word 0xE7F00CF0
+	bx lr
+
+.global svcReceiveMessage
+.type svcReceiveMessage, %function
+svcReceiveMessage:
+	.word 0xE7F010F0
+	bx lr
+
 .global svcAlloc
 .type svcAlloc, %function
 svcAlloc:
@@ -18,6 +42,12 @@ svcAllocAlign:
 .type svcFree, %function
 svcFree:
 	.word 0xE7F029F0
+	bx lr
+
+.global svcRegisterResourceManager
+.type svcRegisterResourceManager, %function
+svcRegisterResourceManager:
+	.word 0xE7F02CF0
 	bx lr
 
 .global svcOpen
@@ -44,6 +74,12 @@ svcIoctlv:
 	.word 0xE7F039F0
 	bx lr
 
+.global svcResourceReply
+.type svcResourceReply, %function
+svcResourceReply:
+	.word 0xE7F049F0
+	bx lr
+
 .global svcInvalidateDCache
 .type svcInvalidateDCache, %function
 svcInvalidateDCache:
@@ -56,8 +92,8 @@ svcFlushDCache:
 	.word 0xE7F052F0
 	bx lr
 
-.global svcBackdoor
-.type svcBackdoor, %function
-svcBackdoor:
+.global svcRead32
+.type svcRead32, %function
+svcRead32:
 	.word 0xE7F081F0
 	bx lr
